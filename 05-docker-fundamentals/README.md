@@ -1,6 +1,8 @@
 # Docker Fundamentals - Hello World Multi-Stack Applications
 
-**Name:** Ujjwal Jain  
+**Student Name:** Ujjwal Jain  
+**Roll Number:** 24bcs10173  
+**Section:** Section B  
 **Topic:** Containerizing 6 Different Tech Stacks with Docker  
 
 ---

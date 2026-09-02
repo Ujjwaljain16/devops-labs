@@ -1,68 +1,77 @@
 #!/bin/bash
 # ==============================================================================
 # Script Name : sysinfo.sh
-# Purpose     : Collect and display system information, accept user input,
+# Purpose     : Collect system information, user details, disk usage,
 #               and export running process snapshot using file redirection.
-# Author      : Ujjwal Jain
+# Student     : Ujjwal Jain (Roll No: 24bcs10173)
+# Class       : DevOps Engineering - Section B
 # ==============================================================================
 
-# Ensure script halts on unhandled errors
 set -e
 
 # --- 1. Variables Definition ---
-CURRENT_DATE=$(date +"%Y-%m-%d %H:%M:%S")
+CURRENT_DATE=$(date)
 SYS_HOSTNAME=$(hostname)
 SYS_USERNAME=$(whoami)
 
 echo "=================================================="
-echo "          SYSTEM INFORMATION REPORT               "
+echo "          SYSTEM INFORMATION & LOG REPORT         "
 echo "=================================================="
 
-# --- 2. Print Basic System Details ---
-echo "Timestamp    : ${CURRENT_DATE}"
-echo "Hostname     : ${SYS_HOSTNAME}"
-echo "Current User : ${SYS_USERNAME}"
+# --- 2. Print System Details ---
+echo "Current Date & Time : ${CURRENT_DATE}"
+echo "System Hostname     : ${SYS_HOSTNAME}"
+echo "Logged-in User      : ${SYS_USERNAME}"
 echo "--------------------------------------------------"
 
-# --- 3. Print Disk Usage ---
+# --- 3. Disk Usage ---
 echo "[+] Current Filesystem Disk Usage (df -h):"
 df -h
 echo "--------------------------------------------------"
 
-# --- 4. Print Running Processes ---
-echo "[+] Top Running Processes Snapshot (ps aux):"
+# --- 4. Process Snapshot Preview ---
+echo "[+] Top Running Processes (ps aux):"
 ps aux | head -n 10
 echo "--------------------------------------------------"
 
 # --- 5. Interactive User Input (read -p) ---
-echo "[?] Log Export Configuration"
-read -p "Enter directory name to store process logs: " TARGET_DIR
-read -p "Enter file name (e.g., process_report.txt): " TARGET_FILE
+echo "[?] Student Details & Export Configuration"
+read -p "Enter your name: " STUDENT_NAME
+read -p "Enter your roll number: " ROLL_NO
+read -p "Enter your comment: " COMMENT
+read -p "Enter directory name to store process logs [default: system_reports]: " TARGET_DIR
 
-# Default fallback if user presses Enter
 TARGET_DIR=${TARGET_DIR:-"system_reports"}
-TARGET_FILE=${TARGET_FILE:-"process_report.txt"}
+STUDENT_NAME=${STUDENT_NAME:-"Ujjwal Jain"}
+ROLL_NO=${ROLL_NO:-"24bcs10173"}
+COMMENT=${COMMENT:-"DevOps Shell Scripting Homework Completed"}
 
-# --- 6. Directory and File Creation (mkdir & touch) ---
-echo "[*] Creating directory: ${TARGET_DIR}"
+# --- 6. Directory & File Creation (mkdir & touch) ---
 mkdir -p "${TARGET_DIR}"
-
-FULL_PATH="${TARGET_DIR}/${TARGET_FILE}"
-echo "[*] Creating target file: ${FULL_PATH}"
-touch "${FULL_PATH}"
+LOG_FILE="${TARGET_DIR}/process.log"
+touch "${LOG_FILE}"
 
 # --- 7. Output Redirection (>) ---
-echo "[*] Storing running processes snapshot into ${FULL_PATH}..."
 {
     echo "=================================================="
-    echo "  PROCESS SNAPSHOT LOG - ${CURRENT_DATE}"
-    echo "  Generated on: ${SYS_HOSTNAME} by ${SYS_USERNAME}"
+    echo "         DEVOPS PROCESS SNAPSHOT LOG              "
+    echo "=================================================="
+    echo "Generated On   : ${CURRENT_DATE}"
+    echo "Hostname       : ${SYS_HOSTNAME}"
+    echo "User           : ${SYS_USERNAME}"
+    echo "Student Name   : ${STUDENT_NAME}"
+    echo "Roll Number    : ${ROLL_NO}"
+    echo "Comment        : ${COMMENT}"
     echo "=================================================="
     echo ""
     ps aux
-} > "${FULL_PATH}"
+} > "${LOG_FILE}"
 
+echo "--------------------------------------------------"
+echo "Student Name : ${STUDENT_NAME}"
+echo "Roll Number  : ${ROLL_NO}"
+echo "Comment      : ${COMMENT}"
 echo "=================================================="
-echo "[SUCCESS] Process log successfully saved to: ${FULL_PATH}"
-echo "Total lines written: $(wc -l < "${FULL_PATH}")"
+echo "[SUCCESS] Process log successfully generated: ${LOG_FILE}"
+echo "Total lines saved: $(wc -l < "${LOG_FILE}")"
 echo "=================================================="

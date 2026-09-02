@@ -2,6 +2,7 @@
 
 **Student Name:** Ujjwal Jain  
 **Enrollment Number:** 24bcs10173  
+**Section:** Section B  
 **Topic:** Docker Multi-Stage Builds, Image Optimization, and Multi-Stack Deployments  
 
 ---

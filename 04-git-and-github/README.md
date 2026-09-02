@@ -1,6 +1,8 @@
 # Git & GitHub Fundamentals - Practical Lab Tasks
 
-**Name:** Ujjwal Jain  
+**Student Name:** Ujjwal Jain  
+**Roll Number:** 24bcs10173  
+**Section:** Section B  
 **Topic:** Commit flags mechanics (`-a -m` vs `-m`) and selective history integration (`git cherry-pick`)  
 
 ---

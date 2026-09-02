@@ -1,6 +1,8 @@
 # Linux Fundamentals - Lab Tasks & Practice
 
-**Name:** Ujjwal Jain  
+**Student Name:** Ujjwal Jain  
+**Roll Number:** 24bcs10173  
+**Section:** Section B  
 **Topic:** Linux Basics, File Linking, User Management, Log Inspection, and Command Essentials  
 
 ---
