@@ -106,6 +106,9 @@ round-trip min/avg/max = 0.070/0.096/0.122 ms
 ```
 > **Result:** ✅ Successful. Backend queries database securely over `lab-db-net`.
 
+### 📷 Screenshot Verification (Network Isolation Test)
+![Container Network Isolation Test](screenshots/01_container_network_test.png)
+
 ---
 
 ## 📌 Task 2: Host Network Mode (`--network host`)
@@ -170,6 +173,9 @@ curl -s http://localhost:8085 | grep "<h1>"
         <h1>Hello students - Live Hot Reload Verified! ⚡</h1>
 ```
 > **Result:** Content updated dynamically in real time through the shared filesystem bind mount.
+
+### 📷 Screenshot Verification (Bind Mount Hot-Reload)
+![Bind Mount Hot Reload](screenshots/02_bind_mount_hot_reload.png)
 
 ---
 

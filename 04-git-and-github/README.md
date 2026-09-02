@@ -172,3 +172,8 @@ drwxr-xr-x 8 ujjwal ujjwal 4096 Sep  2 13:40 ..
 -rw-r--r-- 1 ujjwal ujjwal   12 Sep  2 13:46 README.md
 ```
 > *Result:* `payment.js` is now cleanly integrated into `main` with its own unique commit hash (`e82b901`), while `auth.js` and `token.js` remain isolated in the feature branch.
+
+---
+
+### 📷 Screenshot Verification (Git Log & Cherry-Pick Workflow)
+![Git Cherry-Pick Execution](screenshots/01_git_cherry_pick.png)

@@ -176,3 +176,8 @@ ip a
     inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
 ```
 - **Student Insight:** `eth0` is the virtualized NIC assigned `172.28.140.231/20` (Class B private network), while `docker0` serves as the default Docker container bridge gateway (`172.17.0.1/16`).
+
+---
+
+### 📷 Screenshot Verification (Networking Commands & Diagnostics)
+![Networking Diagnostics Execution](screenshots/01_networking_diagnostics.png)

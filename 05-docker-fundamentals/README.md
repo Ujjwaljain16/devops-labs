@@ -103,3 +103,32 @@ curl -s http://localhost:8082 | grep -o "Hello World from React[^<]*"
 curl -s http://localhost:8083 | grep -o "Hello World from Nginx[^<]*"
 # Output: Hello World from Nginx Web Server! 🟢
 ```
+
+---
+
+## 📷 Screenshot Verifications (Web Applications & Container Matrix)
+
+### 1. Application Web Previews
+
+#### 1. Node.js Hello World (Port 3000)
+![Node.js Web App](screenshots/01_nodejs_app.png)
+
+#### 2. Python Flask Hello World (Port 5000)
+![Python Flask App](screenshots/02_python_app.png)
+
+#### 3. Java Web App (Port 8080)
+![Java Web App](screenshots/03_java_app.png)
+
+#### 4. Apache HTTP Server (Port 8081)
+![Apache Web Server](screenshots/04_apache_app.png)
+
+#### 5. React Single Page App (Port 8082)
+![React Application](screenshots/05_react_app.png)
+
+#### 6. Nginx Web Server (Port 8083)
+![Nginx Web Server](screenshots/06_nginx_app.png)
+
+---
+
+### 2. Container Status & Verification Matrix
+![Docker PS Matrix](screenshots/07_docker_ps_matrix.png)

@@ -139,3 +139,13 @@ We deployed 3 distinct application architectures using Docker containerization:
   curl http://localhost:8080
   # Displays: Hello World from Java Web Application! ☕
   ```
+
+---
+
+## 📷 Screenshot Verifications (Multi-Stage Build & Container Status)
+
+### 1. Multi-Stage Web Application Running on Port 8080
+![Multi-Stage Application](screenshots/01_multistage_app.png)
+
+### 2. Container Verification & Image Optimization Metrics
+![Docker PS Multi-Stage](screenshots/02_docker_ps_multistage.png)

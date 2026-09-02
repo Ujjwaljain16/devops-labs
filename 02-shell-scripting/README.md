@@ -163,6 +163,9 @@ Total lines saved: 43
 ==================================================
 ```
 
+### 📷 Screenshot Verification (Script Execution & Output Redirection)
+![Shell Script Execution](screenshots/01_sysinfo_run.png)
+
 ---
 
 ## 🔍 Log Verification (`cat system_reports/process.log`)

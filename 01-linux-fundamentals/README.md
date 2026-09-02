@@ -73,6 +73,9 @@ cat softlink_file.txt
 rm hardlink_file.txt softlink_file.txt
 ```
 
+### 📷 Screenshot Verification (Soft Link & Hard Link Testing)
+![Soft Link and Hard Link Practice](screenshots/01_soft_hard_links.png)
+
 ---
 
 ### 3. Interview Takeaways
@@ -165,6 +168,9 @@ Sep 02 10:00:02 devops-vm dockerd[854]: time="2026-09-02T10:00:02.241094182Z" le
 Sep 02 10:00:02 devops-vm dockerd[854]: time="2026-09-02T10:00:02.300184719Z" level=info msg="Daemon has completed initialization"
 Sep 02 10:00:02 devops-vm systemd[1]: Started Docker Application Container Engine.
 ```
+
+### 📷 Screenshot Verification (User Creation & Journalctl Inspection)
+![User Creation and Journalctl](screenshots/02_adduser_and_journalctl.png)
 
 ---
 
