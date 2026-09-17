@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hello-pod
+  labels:
+    app: hello-pod
+spec:
+  restartPolicy: Never
+  containers:
+    - name: hello
+      image: busybox:1.36
+      # sleep long enough that a `kubectl get pods -w` running alongside
+      # actually has a chance to catch the Running phase before it flips
+      # to Completed, instead of racing straight through it
+      command: ["sh", "-c", "echo hello from a short-lived task; sleep 6; echo done"]

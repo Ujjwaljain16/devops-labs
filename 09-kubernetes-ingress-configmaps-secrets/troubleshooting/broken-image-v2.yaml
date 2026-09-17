@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broken-image-recover-demo
+  annotations:
+    kubernetes.io/change-cause: "v2: bad image tag, deliberately broken"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: broken-image-recover-demo
+  template:
+    metadata:
+      labels:
+        app: broken-image-recover-demo
+    spec:
+      containers:
+        - name: nginx
+          # BUG (on purpose): nonexistent tag, surged Pods will stick in
+          # ImagePullBackOff while the old, healthy v1 Pods stay untouched
+          image: nginx:this-tag-absolutely-does-not-exist-v2

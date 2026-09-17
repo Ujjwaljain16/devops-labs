@@ -208,6 +208,30 @@ Elapsed: 17s
 ![Graceful Termination Watch](screenshots/05_pod_lifecycle_graceful_termination.png)
 Caught mid-flight: `Running` → `Terminating` (still `1/1` since the `preStop` hook is mid-sleep) → the delete confirmation lands → the watch stream then replays the last known `Completed` state a few times before settling, which is just `kubectl -w` re-emitting the final cached state rather than anything new happening.
 
+### Bonus - `hello.yaml`: Watching the Transient States Live, Not Just the End Result
+
+`03-succeeded-pod.yaml` above already proves a batch Pod reaches `Completed`, but that only shows the *final* state - it doesn't prove the in-between stages actually happen. Ran a separate `hello.yaml` (deliberately with a longer sleep so a live watcher has time to actually catch `Running` before it flips) with `kubectl get pods -w` already running before `apply`:
+
+```bash
+kubectl apply -f hello.yaml
+```
+```text
+pod/hello-pod created
+NAME        READY   STATUS              RESTARTS   AGE
+hello-pod   0/1     Pending             0          0s
+hello-pod   0/1     Pending             0          0s
+hello-pod   0/1     ContainerCreating   0          0s
+hello-pod   0/1     ContainerCreating   0          1s
+hello-pod   1/1     Running             0          1s
+hello-pod   0/1     Completed           0          8s
+```
+All three named transitions live: `Pending → ContainerCreating → Running → Completed`, caught mid-flight rather than just spot-checked at the end.
+```text
+$ kubectl logs hello-pod
+hello from a short-lived task
+done
+```
+
 ---
 
 ## Task 2: `yatri-backend-rs` ReplicaSet - Deploy & Scale
@@ -246,7 +270,26 @@ kubectl scale rs/yatri-backend-rs --replicas=3
 NAME               DESIRED   CURRENT   READY   AGE
 yatri-backend-rs   3         3         3       39s
 ```
-Every scale operation reconciled within a handful of seconds - the ReplicaSet controller just kept comparing desired vs. actual replica count and creating/deleting Pods to match, exactly the "reconciliation loop" concept from the lecture. Deleted the standalone RS afterward (`kubectl delete -f yatri-backend-rs.yaml`) so its `app: yatri-backend-rs` selector wouldn't sit around next to the Deployment's `app: yatri-backend` Pods.
+Every scale operation reconciled within a handful of seconds - the ReplicaSet controller just kept comparing desired vs. actual replica count and creating/deleting Pods to match, exactly the "reconciliation loop" concept from the lecture.
+
+### Self-healing - manually kill a Pod, watch the controller replace it
+
+Scaling proves the controller reacts to a changed desired count; this proves it reacts to *drift* even when nobody touched the desired count at all:
+
+```bash
+POD=$(kubectl get pods -l app=yatri-backend-rs -o jsonpath='{.items[0].metadata.name}')
+kubectl delete pod $POD
+kubectl get pods -l app=yatri-backend-rs
+```
+```text
+Deleting yatri-backend-rs-dclwh
+pod "yatri-backend-rs-dclwh" deleted from default namespace
+NAME                     READY   STATUS    RESTARTS   AGE
+yatri-backend-rs-smfmj   1/1     Running   0          21s
+yatri-backend-rs-x6v2r   1/1     Running   0          21s
+yatri-backend-rs-xhrts   1/1     Running   0          5s
+```
+`yatri-backend-rs-dclwh` is gone for good - it's not coming back. Instead, a brand-new Pod (`yatri-backend-rs-xhrts`, a completely different name) appeared 4 seconds later, because the ReplicaSet controller's reconciliation loop noticed `CURRENT` (2) had dropped below `DESIRED` (3) and immediately created a replacement. Deleted the standalone RS afterward (`kubectl delete -f yatri-backend-rs.yaml`) so its `app: yatri-backend-rs` selector wouldn't sit around next to the Deployment's `app: yatri-backend` Pods.
 
 ### Screenshot Verification (ReplicaSet create → scale to 5 → delete)
 ![ReplicaSet Scaling](screenshots/06_replicaset_scaling.png)
@@ -366,6 +409,19 @@ The Deployment "broken-selector-demo" is invalid: spec.template.metadata.labels:
 ```
 This one doesn't even get past `kubectl apply` - the API server itself rejects a Deployment whose `spec.selector` doesn't match `spec.template.metadata.labels` before anything is created. No ReplicaSet, no Pods, nothing to clean up. Good to know this fails fast at admission time rather than silently creating orphaned objects.
 
+**Then actually fixed it** rather than stopping at "here's the error" - [`selector-mismatch-fixed.yaml`](troubleshooting/selector-mismatch-fixed.yaml) is identical except the template label is corrected to match the selector:
+```bash
+kubectl apply -f troubleshooting/selector-mismatch-fixed.yaml
+kubectl get pods -l app=broken-selector-demo
+```
+```text
+deployment.apps/broken-selector-demo created
+NAME                                    READY   STATUS    RESTARTS   AGE
+broken-selector-demo-665c455b8f-f47kj   1/1     Running   0          6s
+broken-selector-demo-665c455b8f-mr7h7   1/1     Running   0          6s
+```
+Same manifest, one label corrected, `2/2 Running` - confirms the fix, not just the diagnosis.
+
 ### `broken-image.yaml`
 
 ```bash
@@ -388,6 +444,51 @@ Normal   BackOff    kubelet  Back-off pulling image "nginx:this-image-tag-absolu
 Warning  Failed     kubelet  Error: ImagePullBackOff
 ```
 Unlike the selector mismatch, this one *does* create the Deployment/ReplicaSet/Pods just fine - the objects are valid, it's only the actual image pull at runtime that fails, which is exactly why `rollout status` hangs instead of erroring immediately: Kubernetes has no way to know upfront that an image tag doesn't exist in the registry. Deleted it after confirming the failure mode (`kubectl delete -f troubleshooting/broken-image.yaml`).
+
+### `broken-image.yaml` - the actual recovery drill, done properly
+
+The version above deploys the broken image with nothing to fall back to. Redid it as a real recovery scenario instead: deploy a genuinely healthy [`broken-image-v1.yaml`](troubleshooting/broken-image-v1.yaml) first, confirm it's rolled out and healthy, *then* push a broken [`broken-image-v2.yaml`](troubleshooting/broken-image-v2.yaml) over it, and prove the old Pods survive the failed rollout untouched:
+
+```bash
+kubectl apply -f troubleshooting/broken-image-v1.yaml
+kubectl rollout status deployment/broken-image-recover-demo --timeout=30s
+# ... successfully rolled out, 2/2 nginx:1.25-alpine ...
+
+kubectl apply -f troubleshooting/broken-image-v2.yaml
+kubectl get pods -l app=broken-image-recover-demo
+```
+```text
+NAME                                         READY   STATUS         RESTARTS   AGE
+broken-image-recover-demo-6c747dd869-mgkhg   0/1     ErrImagePull   0          15s
+broken-image-recover-demo-86c46f87f4-hx2hj   1/1     Running        0          22s
+broken-image-recover-demo-86c46f87f4-jxp8h   1/1     Running        0          22s
+```
+Exactly the "surge, don't replace" behavior a rolling update is supposed to guarantee: both original `86c46f87f4` Pods are still `Running` untouched, and only the one *new*, surged `6c747dd869` Pod is broken. `kubectl rollout status` confirms it's genuinely stuck, not just slow:
+```text
+$ kubectl rollout status deployment/broken-image-recover-demo --timeout=8s
+Waiting for deployment "broken-image-recover-demo" rollout to finish: 1 out of 2 new replicas have been updated...
+error: timed out waiting for the condition
+```
+
+**Recovery - `kubectl rollout undo`, not a manual delete:**
+```bash
+kubectl rollout undo deployment/broken-image-recover-demo
+kubectl rollout status deployment/broken-image-recover-demo --timeout=30s
+```
+```text
+deployment.apps/broken-image-recover-demo rolled back
+deployment "broken-image-recover-demo" successfully rolled out
+NAME                                         READY   STATUS        RESTARTS   AGE
+broken-image-recover-demo-6c747dd869-mgkhg   0/1     Terminating   0          30s
+broken-image-recover-demo-86c46f87f4-hx2hj   1/1     Running       0          37s
+broken-image-recover-demo-86c46f87f4-jxp8h   1/1     Running       0          37s
+```
+The broken Pod is `Terminating`, the two originals were never touched, and the image confirms it landed back on the known-good tag:
+```text
+$ kubectl get deployment broken-image-recover-demo -o jsonpath='{.spec.template.spec.containers[0].image}'
+nginx:1.25-alpine
+```
+This is the actual point of `rollout undo` over just deleting the broken Deployment: it's a one-command revert to the last known-good ReplicaSet, with zero Pod downtime for the replicas that were already healthy.
 
 ### Screenshot Verification (both controlled-failure scenarios back to back)
 ![Selector Mismatch and Broken Image Failures](screenshots/09_troubleshooting_selector_and_broken_image.png)
@@ -509,6 +610,56 @@ Restart count climbing (1 → 3), and this time the `STATUS` column actually doe
 ### Screenshot Verification (CPU Throttling cgroup stats + Memory OOMKilled)
 ![Resource Requests and Limits - CPU Throttle and OOMKill](screenshots/10_resource_limits_cpu_throttle_and_oomkill.png)
 Re-ran both demos fresh for this screenshot, so the numbers differ slightly from the transcript above but tell the same story: `nr_periods 122` / `nr_throttled 122` - throttled in *every single period* this time - and the same `OOMKilled` / `Exit Code: 137` on the memory pod. One cosmetic note: the terminal prompt still shows this module's old folder path (`09-kubernetes-pod-lifecycle-replicasets-deployments`), since this was captured before the module got renamed to match the session's official title - the commands and cluster state are identical either way, only the folder name changed afterward.
+
+---
+
+## Task 7: Theoretical Writeup
+
+Covering the concepts that came up throughout this module but deserve their own clear explanation rather than being buried inline.
+
+### The 4 ports, and how a request actually flows through them
+
+```
+Client Browser ──► [nodePort: 30080] (Host IP, every node)
+                        │
+                        ▼
+                   [port: 8080] (Service's own virtual IP)
+                        │
+                        ▼
+                   [targetPort: 80] (routes into a Pod)
+                        │
+                        ▼
+                   [containerPort: 80] (the process actually listening)
+```
+- **`containerPort`** - declared in the Pod spec, purely informational/documentation for what the app inside the container actually listens on. Kubernetes doesn't enforce it; it's `targetPort` that actually has to match it for traffic to land correctly.
+- **`targetPort`** - on the Service, the port on the *Pod* that traffic gets forwarded to. This is the piece that has to line up with whatever the container is really listening on.
+- **`port`** - the port the Service itself exposes, internally, as its own stable virtual IP. Other things inside the cluster talk to the Service on this port, not `targetPort` directly.
+- **`nodePort`** - only exists for `type: NodePort` (or `LoadBalancer`) Services. A static port (`30000-32767`) opened on *every* node's real IP, so something outside the cluster can reach in without needing a cloud load balancer.
+
+### Labels vs. Selectors
+
+**Labels** are just key-value metadata attached to an object (`app: yatri-backend`, `tier: backend`) - they don't *do* anything by themselves, they're just tags. **Selectors** are the query a controller or Service uses to find which objects its labels apply to (`matchLabels: {app: yatri-backend}`). Every ReplicaSet/Deployment/Service in this module works because of that pairing: the controller's `selector` finds Pods by label, and Task 5's `selector-mismatch.yaml` broke *specifically* because the selector and the template's labels stopped agreeing with each other.
+
+### The 4 deployment strategies
+
+- **RollingUpdate** (what Task 4 actually demonstrated) - replaces old Pods with new ones gradually, governed by `maxSurge`/`maxUnavailable`. Zero downtime if configured sanely, but both versions run simultaneously for a window.
+- **Recreate** - kills every old Pod first, *then* starts new ones. Guaranteed to never run both versions at once, at the cost of a real downtime window while zero Pods exist. Necessary when two versions genuinely cannot coexist (e.g. an incompatible DB schema migration).
+- **Blue-Green** - two complete, independent environments running side by side (old = Blue, new = Green), and a single atomic switch (usually a Service selector change) flips 100% of traffic at once. Instant rollback (flip the selector back), but needs 2x the compute the whole time both environments exist.
+- **Canary** - a small fraction of new-version Pods sit alongside the stable majority under the same Service, so a small slice of real traffic hits the new version before committing to a full rollout. Lets you catch problems on a fraction of users instead of everyone at once.
+
+### `maxSurge` vs. `maxUnavailable` - the actual math
+
+For `replicas: 3`, `maxSurge: 1`, `maxUnavailable: 1` (exactly what `deployment-v2.yaml` in Task 4 uses):
+- **Max Pods that can exist at once during rollout:** `3 + maxSurge(1) = 4`
+- **Min Pods that must stay available at all times:** `3 - maxUnavailable(1) = 2`
+
+That's precisely what the live watch output in Task 4 showed - old Pods terminating a couple at a time, never all 5 (this module was running 5 replicas going into that rollout) at once, always leaving at least 2 available.
+
+### Resource Requests vs. Limits, and GB vs. GiB
+
+Already proved both failure mechanisms hands-on in Task 6, but to state the distinction plainly: **requests** are what the *scheduler* uses to decide whether a Pod fits on a node at all - a promise of "this much is reserved for you." **Limits** are what the *kernel* (via cgroups) actually enforces once the container is running - cross a CPU limit and you get throttled (Task 6's `nr_throttled` proof), cross a memory limit and the container gets `OOMKilled` (Task 6's `Exit Code: 137` proof). They're checked at two completely different times, by two completely different mechanisms.
+
+On units: **1 GB = 10⁹ bytes** (decimal/SI, what marketing and storage vendors use), while **1 GiB = 2³⁰ bytes = 1,073,741,824 bytes** (binary/IEC). Kubernetes deliberately uses the binary units - `Mi` and `Gi` - specifically so there's no ambiguity about which one a manifest means; `100Mi` in Task 6's memory limit is exactly 104,857,600 bytes, not a rounded marketing number.
 
 ---
 

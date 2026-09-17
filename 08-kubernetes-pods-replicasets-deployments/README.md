@@ -133,6 +133,35 @@ Container runtime confirms `containerd`, exactly matching the default mentioned 
 
 ---
 
+## Task 3.5: `minikube stop` - Cleanly Powering Down the Cluster
+
+Missed this the first time through - went back and actually ran it, since "start" without "stop" is only half the lifecycle:
+
+```bash
+minikube stop
+```
+```text
+* Stopping node "minikube"  ...
+* Powering off "minikube" via SSH ...
+* 1 node stopped.
+```
+
+```bash
+minikube status
+```
+```text
+minikube
+type: Control Plane
+host: Stopped
+kubelet: Stopped
+apiserver: Stopped
+kubeconfig: Stopped
+```
+
+Every component flips to `Stopped`, including `kubeconfig` - `kubectl` genuinely has nothing to talk to at this point (any `kubectl get pods` here would just hang or error, not silently succeed). Brought it back up right after with a plain `minikube start` to keep working on the rest of this module - `minikube stop` doesn't delete anything, it just powers down the container/VM, so everything (Pods, Deployments, the whole cluster state) came back exactly as it was.
+
+---
+
 ## Task 4: Hello Minikube - Deploy an Application
 
 To confirm Minikube is functional for real workloads end-to-end beyond just starting the cluster, I walked through the official Hello Minikube deployment flow (`kubernetes.io/docs/tutorials/hello-minikube/`).

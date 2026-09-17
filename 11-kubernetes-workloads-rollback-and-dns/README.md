@@ -64,6 +64,119 @@ minikube   Ready    control-plane   69m   v1.37.0
 
 Notice there's no `replicas:` field anywhere in that manifest - DESIRED came out to exactly `1` because this Minikube cluster has exactly 1 node. On a real multi-node cluster this same manifest would put one Pod on every node automatically as nodes join, which is the entire point of a DaemonSet: `kube-proxy` and `kindnet` (visible in `kubectl get daemonset -A`) are themselves running as DaemonSets in `kube-system` for exactly this reason.
 
+### StatefulSet - also proved hands-on, not left as theory
+
+The earlier pass through this table left StatefulSet as pure comparison-table knowledge. Went back and actually deployed one - a 3-replica MySQL StatefulSet behind a headless Service, in [`statefulset-demo/`](statefulset-demo/):
+
+```yaml
+# statefulset-demo/headless-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  clusterIP: None    # <- what makes it "headless"
+  selector:
+    app: mysql
+  ports:
+    - port: 3306
+```
+```yaml
+# statefulset-demo/statefulset.yaml (trimmed)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  serviceName: mysql   # <- must match the headless Service above
+  replicas: 3
+  selector:
+    matchLabels: { app: mysql }
+  template:
+    metadata:
+      labels: { app: mysql }
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          env: [{ name: MYSQL_ROOT_PASSWORD, value: secret }]
+          volumeMounts: [{ name: data, mountPath: /var/lib/mysql }]
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources: { requests: { storage: 500Mi } }
+```
+
+**Ordinal naming + strictly sequential startup, watched live:**
+```bash
+kubectl apply -f headless-service.yaml
+kubectl apply -f statefulset.yaml
+```
+```text
+mysql-0   0/1   Pending             0   0s
+mysql-0   0/1   ContainerCreating   0   0s
+mysql-0   1/1   Running             0   45s
+mysql-1   0/1   Pending             0   0s
+mysql-1   0/1   ContainerCreating   0   0s
+mysql-1   1/1   Running             0   0s
+mysql-2   0/1   Pending             0   0s
+mysql-2   0/1   ContainerCreating   0   0s
+mysql-2   1/1   Running             0   1s
+```
+`mysql-0` had to fully reach `1/1 Running` (45 real seconds - MySQL's own init takes a while) *before* `mysql-1` was even created - not just named sequentially, actually gated on readiness. A Deployment with `replicas: 3` would have fired all three simultaneously.
+
+**PersistentVolumeClaims - one per ordinal, via `volumeClaimTemplates`:**
+```text
+$ kubectl get pvc
+NAME           STATUS   VOLUME                    CAPACITY   ACCESS MODES
+data-mysql-0   Bound    pvc-7b353a3a-...           500Mi      RWO
+data-mysql-1   Bound    pvc-4654f588-...           500Mi      RWO
+data-mysql-2   Bound    pvc-7484d21d-...           500Mi      RWO
+```
+
+**Headless Service DNS - multiple `A` records, not one virtual IP:**
+```text
+$ kubectl exec dns-test -- nslookup mysql
+Name:	mysql.default.svc.cluster.local
+Address: 10.244.0.20
+Name:	mysql.default.svc.cluster.local
+Address: 10.244.0.21
+Name:	mysql.default.svc.cluster.local
+Address: 10.244.0.22
+```
+Same name, three separate real Pod IPs returned - a normal `ClusterIP` Service would return exactly one virtual IP here. This is what "headless" actually buys you: direct, individual addressability of every replica.
+
+**Direct ordinal addressing - reaching one specific replica by name:**
+```text
+$ kubectl exec dns-test -- nslookup mysql-0.mysql.default.svc.cluster.local
+Name:	mysql-0.mysql.default.svc.cluster.local
+Address: 10.244.0.20
+```
+
+**Identity invariance - delete `mysql-0`, watch it come back as `mysql-0`:**
+```bash
+kubectl delete pod mysql-0
+```
+```text
+$ kubectl get pods -l app=mysql
+NAME      READY   STATUS    RESTARTS   AGE
+mysql-0   1/1     Running   0          12s
+mysql-1   1/1     Running   0          49s
+mysql-2   1/1     Running   0          49s
+```
+Genuinely the same name back, not `mysql-3` or a random suffix - the StatefulSet controller recreated the exact ordinal slot that went missing. Direct contrast with the `demo-app` **Deployment** from Task 3 below, deleted the same way:
+```text
+$ kubectl delete pod demo-app-7f7fbb5c9b-bk9rg
+$ kubectl get pods -l app=demo-app
+NAME                        READY   STATUS    RESTARTS   AGE
+demo-app-7f7fbb5c9b-59gxq   1/1     Running   0          9s
+demo-app-7f7fbb5c9b-ndt89   1/1     Running   2 (6m42s ago)   4h28m
+```
+`demo-app-7f7fbb5c9b-bk9rg` is gone forever, replaced by `demo-app-7f7fbb5c9b-59gxq` - a completely new random hash. Same "delete a Pod" action, opposite identity guarantee, because one controller is a Deployment and the other is a StatefulSet.
+
+**Teardown - one honest nuance:** deleting the whole StatefulSet (`kubectl delete -f statefulset.yaml`) did **not** cleanly terminate `mysql-2 -> mysql-1 -> mysql-0` in strict reverse order the way scaling *down* the replica count would have - all three flipped to `Terminating` within the same second, with only a slight lead for `mysql-0` finishing first. The ordered-termination guarantee is specifically about scale-down operations changing the desired replica count; deleting the StatefulSet object itself just garbage-collects its owned Pods, which isn't the same code path. Worth knowing rather than assuming "StatefulSet = always sequential, no matter how you tear it down." PVCs also **survived** the StatefulSet's deletion (`data-mysql-0/1/2` still showed `Bound` afterward) - had to delete them separately, which is deliberate: StatefulSet storage is meant to outlive the controller that created it.
+
 ---
 
 ## Task 2: ReplicaSet vs. Deployment

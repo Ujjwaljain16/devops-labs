@@ -54,7 +54,7 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── troubleshooting/                # selector-mismatch.yaml & broken-image.yaml controlled-failure demos
 │   ├── resource-limits/                # cpu-throttle-pod.yaml & memory-oomkill-pod.yaml — real CPU throttling + OOMKilled demos
 │   ├── ques.md                         # Assignment breakdown: explicit homework vs session practice
-│   └── README.md                       # Full kubectl apply/describe/logs/scale transcripts against live Minikube cluster
+│   └── README.md                       # kubectl transcripts: pod-lifecycle+hello.yaml live watch, RS self-healing, rolling update, troubleshooting fix-and-recover, resource limits, theory writeup
 ├── 10-kubernetes-networking-and-services/
 │   ├── pod.yaml                        # Hand-written Nginx Pod manifest (apiVersion/kind/metadata/spec)
 │   ├── ques.md                         # Assignment breakdown: pod.yaml basics, apply vs create
@@ -62,9 +62,16 @@ This repository contains the complete laboratory implementations, source code, c
 ├── 11-kubernetes-workloads-rollback-and-dns/
 │   ├── deployment/                     # v1-v4 Deployment manifests (nginx 1.24 -> 1.27), 4-revision rollout history
 │   ├── daemonset-demo/                 # node-agent-demo DaemonSet, one Pod per node proof
+│   ├── statefulset-demo/               # headless-service.yaml + statefulset.yaml — 3-replica MySQL, ordinal identity, PVC-per-ordinal proof
 │   ├── dns-test/                       # curl-test-pod.yaml for hands-on FQDN/CoreDNS resolution proof
 │   ├── ques.md                         # Assignment breakdown: StatefulSet/DaemonSet homework vs already-covered ReplicaSet/Deployment
-│   └── README.md                       # Rollback V4->V1, DNS/CoreDNS resolution proof, StatefulSet/DaemonSet comparison
+│   └── README.md                       # Rollback V4->V1, DNS/CoreDNS resolution proof, live StatefulSet deploy + identity-invariance vs Deployment
+├── 12-deployment-strategies/
+│   ├── 02-blue-green/                  # deployment-blue/green.yaml + service-blue/green.yaml — instant cutover & rollback
+│   ├── 03-canary/                      # deployment-stable(9)/canary(1).yaml + service.yaml — real traffic-ratio testing
+│   ├── 04-recreate/                    # deployment-v1/v2.yaml, strategy.type Recreate — live-captured downtime window
+│   ├── ques.md                         # Assignment breakdown: gap-filled from repo audit against Lecture 10 Tasks 11-13
+│   └── README.md                       # Blue-Green cutover, canary traffic-split (incl. port-forward gotcha), recreate outage capture
 └── README.md                           # Master submission guide
 ```
 
