@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: startup-demo
+  labels:
+    app: startup-demo
+    lifecycle-stage: startup-probe
+spec:
+  containers:
+    - name: slow-starter
+      image: busybox:1.36
+      # simulates a slow-booting app: no /tmp/started marker for the
+      # first 20s. Without the startupProbe below, the aggressive
+      # livenessProbe (periodSeconds=2, failureThreshold=3 -> 6s) would
+      # kill the container before it ever finishes "starting up"
+      args:
+        - /bin/sh
+        - -c
+        - sleep 20; touch /tmp/started; sleep 600
+      startupProbe:
+        exec:
+          command: ["cat", "/tmp/started"]
+        periodSeconds: 5
+        failureThreshold: 10
+      livenessProbe:
+        exec:
+          command: ["cat", "/tmp/started"]
+        periodSeconds: 2
+        failureThreshold: 3

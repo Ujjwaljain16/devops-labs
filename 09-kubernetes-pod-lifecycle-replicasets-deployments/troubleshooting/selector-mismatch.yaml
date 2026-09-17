@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broken-selector-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: broken-selector-demo
+  template:
+    metadata:
+      # BUG (on purpose): this label doesn't match spec.selector.matchLabels
+      # above (app: broken-selector-demo vs app: broken-selector-demo-typo).
+      # The API server rejects this at apply time - it will never even
+      # create a ReplicaSet.
+      labels:
+        app: broken-selector-demo-typo
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25-alpine

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: failed-demo
+  labels:
+    app: failed-demo
+    lifecycle-stage: failed
+spec:
+  restartPolicy: Never
+  containers:
+    - name: failing-task
+      image: busybox:1.36
+      command: ["sh", "-c", "echo Simulating a task failure; exit 1"]

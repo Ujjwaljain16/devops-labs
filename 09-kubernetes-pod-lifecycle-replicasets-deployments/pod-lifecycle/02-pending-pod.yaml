@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pending-demo
+  labels:
+    app: pending-demo
+    lifecycle-stage: pending
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.25-alpine
+      resources:
+        requests:
+          # deliberately impossible to schedule on a laptop-sized cluster,
+          # so this Pod stays stuck in Pending waiting for a node to fit it
+          cpu: "100"
+          memory: "500Gi"

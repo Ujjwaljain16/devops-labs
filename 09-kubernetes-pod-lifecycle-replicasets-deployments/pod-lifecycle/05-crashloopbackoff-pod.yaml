@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: crashloop-demo
+  labels:
+    app: crashloop-demo
+    lifecycle-stage: crashloopbackoff
+spec:
+  # restartPolicy: Always (the default) is what turns a repeatedly-failing
+  # container into CrashLoopBackOff instead of a one-shot Failed Pod
+  containers:
+    - name: crasher
+      image: busybox:1.36
+      command: ["sh", "-c", "echo Starting, about to crash on purpose; sleep 3; exit 1"]

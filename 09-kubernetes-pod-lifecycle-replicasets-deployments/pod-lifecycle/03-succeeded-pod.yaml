@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: succeeded-demo
+  labels:
+    app: succeeded-demo
+    lifecycle-stage: succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: short-task
+      image: busybox:1.36
+      command: ["sh", "-c", "echo Task started; sleep 5; echo Task completed successfully"]

@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: liveness-demo
+  labels:
+    app: liveness-demo
+    lifecycle-stage: liveness-probe
+spec:
+  containers:
+    - name: healthcheck-demo
+      image: busybox:1.36
+      # creates the "healthy" marker, keeps it around for 30s, then removes
+      # it - liveness will start failing after that and kubelet restarts
+      # the container, which is the thing this file exists to demonstrate
+      args:
+        - /bin/sh
+        - -c
+        - touch /tmp/healthy; sleep 30; rm -f /tmp/healthy; sleep 600
+      livenessProbe:
+        exec:
+          command: ["cat", "/tmp/healthy"]
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        failureThreshold: 1

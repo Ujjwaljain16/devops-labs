@@ -47,6 +47,17 @@ All tasks have been organized into feature folders with humanized, student-craft
 ├── 08-kubernetes-pods-replicasets-deployments/
 │   ├── ques.md                         # Assignment breakdown: required vs optional homework
 │   └── README.md                       # K8s architecture doc review, Minikube install/start/status, Hello Minikube deployment
+├── 09-kubernetes-pod-lifecycle-replicasets-deployments/
+│   ├── pod-lifecycle/                  # 12 manifests: running, pending, succeeded, failed, crashloop, image-pull, probes, init, sidecar, graceful termination
+│   ├── replicaset/                     # yatri-backend-rs.yaml + scaling practice
+│   ├── deployments/                    # deployment-v1.yaml / deployment-v2.yaml rolling update
+│   ├── troubleshooting/                # selector-mismatch.yaml & broken-image.yaml controlled-failure demos
+│   ├── ques.md                         # Assignment breakdown: explicit homework vs session practice
+│   └── README.md                       # Full kubectl apply/describe/logs/scale transcripts against live Minikube cluster
+├── 10-kubernetes-networking-and-services/
+│   ├── pod.yaml                        # Hand-written Nginx Pod manifest (apiVersion/kind/metadata/spec)
+│   ├── ques.md                         # Assignment breakdown: pod.yaml basics, apply vs create
+│   └── README.md                       # apply vs create proof, port-forward verification, kubectl get sweep
 └── README.md                           # Master submission guide
 ```
 

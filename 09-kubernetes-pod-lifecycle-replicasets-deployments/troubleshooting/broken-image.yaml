@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broken-image-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: broken-image-demo
+  template:
+    metadata:
+      labels:
+        app: broken-image-demo
+    spec:
+      containers:
+        - name: nginx
+          # BUG (on purpose): this image/tag doesn't exist, so the rollout
+          # gets stuck with Pods stuck in ErrImagePull / ImagePullBackOff
+          image: nginx:this-image-tag-absolutely-does-not-exist-404

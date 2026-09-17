@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: readiness-demo
+  labels:
+    app: readiness-demo
+    lifecycle-stage: readiness-probe
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.25-alpine
+      readinessProbe:
+        # /tmp/ready is never created on purpose, so this Pod stays
+        # Running but permanently 0/1 Ready - the point of this file is
+        # showing readiness is a *separate* signal from "container running"
+        exec:
+          command: ["cat", "/tmp/ready"]
+        initialDelaySeconds: 5
+        periodSeconds: 5

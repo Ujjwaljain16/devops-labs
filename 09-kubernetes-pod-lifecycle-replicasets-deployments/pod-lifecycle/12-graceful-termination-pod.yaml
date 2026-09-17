@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: graceful-termination-demo
+  labels:
+    app: graceful-termination-demo
+    lifecycle-stage: graceful-termination
+spec:
+  # gives the preStop hook + the app's own shutdown room to run before
+  # the kubelet sends SIGKILL - this is what makes "Terminating" last
+  # a visible number of seconds instead of disappearing instantly
+  terminationGracePeriodSeconds: 30
+  containers:
+    - name: nginx
+      image: nginx:1.25-alpine
+      lifecycle:
+        preStop:
+          exec:
+            command: ["sh", "-c", "echo preStop hook running, draining connections; sleep 15"]
