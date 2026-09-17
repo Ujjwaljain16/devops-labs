@@ -1,4 +1,4 @@
-# Kubernetes Pods, ReplicaSets & Deployments — Architecture Study + Minikube Setup
+# Kubernetes Pods, ReplicaSets & Deployments
 
 **Student Name:** Ujjwal Jain
 **Roll Number:** 24bcs10173
