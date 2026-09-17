@@ -11,8 +11,6 @@
 ## 📌 Executive Summary & Submission Overview
 This repository contains the complete laboratory implementations, source code, container configurations, shell scripts, and technical reports for all DevOps homework modules, from Linux fundamentals through Docker and into Kubernetes.
 
-All tasks have been organized into feature folders with humanized, student-crafted documentation, practical examples, architecture diagrams, and terminal execution outputs.
-
 ---
 
 ## 📂 Laboratory Modules Index
@@ -71,21 +69,3 @@ All tasks have been organized into feature folders with humanized, student-craft
 ```
 
 ---
-
-## ⚡ Quick Start: Running the Labs
-
-```bash
-# Clone the repository
-git clone https://github.com/Ujjwaljain16/devops-labs.git
-cd devops-labs
-
-# 1. Run the Shell Script
-chmod +x 02-shell-scripting/sysinfo.sh
-./02-shell-scripting/sysinfo.sh
-
-# 2. Build & Run the Multi-Stage Docker App
-cd 06-docker-multistage-images
-docker build -t devops-multistage-app:v1.0 .
-docker run -d -p 8080:8080 --name multistage-demo devops-multistage-app:v1.0
-curl http://localhost:8080
-```

@@ -1,17 +1,16 @@
-# Kubernetes Networking & Services — First Hand-Written Pod
+# Kubernetes Networking & Services
 
 **Student Name:** Ujjwal Jain
 **Roll Number:** 24bcs10173
 **Section:** Section B
-**Topic:** Writing a Pod manifest from scratch, `apply` vs `create`, verifying a running Nginx Pod
 
-See [ques.md](ques.md) for exactly what this session asked for (and why the lecture title is misleading — most of this class is Pod basics, not Services).
+See [ques.md](ques.md) for exactly what this session asked for
 
-**Environment note:** Same live Minikube cluster (WSL2 Ubuntu) as the rest of this repo. Cleaned up leftover Pods/Deployments from the previous module's screenshot pass before starting this one, so everything below starts from a genuinely empty `default` namespace.
+**Environment note:** Same live Minikube cluster (WSL2 Ubuntu) as the rest of this repo. Cleaned up leftover Pods/Deployments from the previous module's before starting this one, so everything below starts from a genuinely empty `default` namespace.
 
 ---
 
-## 📌 Step 1: Confirm the cluster is actually up
+## Step 1: Confirm the cluster is actually up
 
 ```bash
 minikube start
@@ -22,7 +21,7 @@ minikube start
   - Want kubectl v1.37.0? Try 'minikube kubectl -- get pods -A'
 * Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
 ```
-Already running, so this just re-confirmed the addons and printed a real (and accurate) warning about client/server version skew — `kubectl` on this machine is v1.34.1 talking to a v1.37.0 server, a couple of minor versions apart. Didn't paper over that warning; it's genuinely there every time.
+Already running, so this just re-confirmed the addons and printed a real (and accurate) warning about client/server version skew - `kubectl` on this machine is v1.34.1 talking to a v1.37.0 server, a couple of minor versions apart.
 
 ```bash
 kubectl version
@@ -50,15 +49,15 @@ NAME       STATUS   ROLES           AGE   VERSION
 minikube   Ready    control-plane   63m   v1.37.0
 ```
 
-### 📷 Screenshot Verification (`minikube start` → deploy → `create` error)
+###  Screenshot Verification (`minikube start` → deploy → `create` error)
 ![Minikube start, deploy, and create-vs-apply error](screenshots/01_minikube_apply_create_error.png)
-This run shows `pod/nginx-pod unchanged` on the `apply` rather than `created` — that's because the Pod already existed from an earlier pass in this same session with an identical spec, so `apply` correctly recognized there was nothing to change. The `create` error right after is the real thing either way.
+This run shows `pod/nginx-pod unchanged` on the `apply` rather than `created` - that's because the Pod already existed from an earlier pass in this same session with an identical spec, so `apply` correctly recognized there was nothing to change. The `create` error right after is the real thing either way.
 
 ---
 
-## 📌 Step 2: `pod.yaml`, written by hand
+##  Step 2: `pod.yaml`, written by hand
 
-Not copy-pasted from the transcript doc — just the four mandatory fields the instructor called out, filled in for a basic Nginx Pod:
+Not copy-pasted from the transcript doc just the four mandatory fields filled in for a basic Nginx Pod:
 
 ```yaml
 apiVersion: v1
@@ -75,13 +74,13 @@ spec:
         - containerPort: 80
 ```
 
-`apiVersion`, `kind`, `metadata`, `spec` — the four required top-level fields. Everything under `spec.containers` is the actual container definition: a name for the container (distinct from the Pod's own name), the image to pull, and the port Nginx listens on inside the container.
+`apiVersion`, `kind`, `metadata`, `spec` - the four required top-level fields. Everything under `spec.containers` is the actual container definition: a name for the container (distinct from the Pod's own name), the image to pull, and the port Nginx listens on inside the container.
 
-(The `labels:` block wasn't in the first version I applied — added a bit later specifically to test the `apply` update behavior in Step 4.)
+(The `labels:` block wasn't in the first version I applied  added a bit later specifically to test the `apply` update behavior in Step 4.)
 
 ---
 
-## 📌 Step 3: Deploy and verify `1/1 Running`
+## Step 3: Deploy and verify `1/1 Running`
 
 ```bash
 kubectl apply -f pod.yaml
@@ -100,7 +99,7 @@ nginx-pod   1/1     Running   0          21s
 
 ---
 
-## 📌 Step 4: `apply` vs `create` — actually testing it, not just reciting it
+##  Step 4: `apply` vs `create` -  actually testing it, not just reciting it
 
 **First, `create` against an already-existing Pod:**
 ```bash
@@ -109,7 +108,7 @@ kubectl create -f pod.yaml
 ```text
 Error from server (AlreadyExists): error when creating "pod.yaml": pods "nginx-pod" already exists
 ```
-Exactly the failure mode described in class — `create` has no concept of "update if it already exists," it just tries to create and the API server rejects the duplicate.
+Exactly the failure mode `create` has no concept of "update if it already exists," it just tries to create and the API server rejects the duplicate.
 
 **Then, edit the file (added the `labels:` block above) and re-`apply`:**
 ```bash
@@ -121,11 +120,11 @@ pod/nginx-pod configured
 NAME        READY   STATUS    RESTARTS   AGE   LABELS
 nginx-pod   1/1     Running   0          37s   app=nginx-pod
 ```
-`configured` — not `created` (it already existed), not `unchanged` (the spec actually differs now), and no error. The label shows up immediately and the Pod's `AGE` didn't reset, meaning the *existing* container was updated in place rather than the Pod being recreated from scratch. That's the actual, demonstrable difference between the two commands: `create` is one-shot and errors on conflict, `apply` diffs against the live object and patches only what changed.
+`configured` - not `created` (it already existed), not `unchanged` (the spec actually differs now), and no error. The label shows up immediately and the Pod's `AGE` didn't reset, meaning the *existing* container was updated in place rather than the Pod being recreated from scratch. That's the actual, demonstrable difference between the two commands: `create` is one-shot and errors on conflict, `apply` diffs against the live object and patches only what changed.
 
 ---
 
-## 📌 Step 5: Verify the Nginx app is actually reachable
+##  Step 5: Verify the Nginx app is actually reachable
 
 ```bash
 kubectl port-forward pod/nginx-pod 8080:80
@@ -147,25 +146,25 @@ Content-Length: 896
 <head>
 <title>Welcome to nginx!</title>
 ```
-A real `200 OK` with the default Nginx welcome page — confirms this isn't just a Pod object sitting in `Running` status, there's an actual working web server behind it reachable through the forwarded port. The `port-forward` terminal itself logged the connection:
+A real `200 OK` with the default Nginx welcome page  confirms this isn't just a Pod object sitting in `Running` status, there's an actual working web server behind it reachable through the forwarded port. The `port-forward` terminal itself logged the connection:
 ```text
 Forwarding from 127.0.0.1:8080 -> 80
 Forwarding from [::1]:8080 -> 80
 Handling connection for 8080
 ```
 
-### 📷 Screenshot Verification (labels, port-forward, live `curl`)
+###  Screenshot Verification (labels, port-forward, live `curl`)
 ![Port-forward and curl verification](screenshots/02_portforward_and_get_sweep.png)
-Worth being upfront about what this screenshot actually shows: the *second* `kubectl port-forward` call in it failed outright —
+Worth being upfront about what this screenshot actually shows: the *second* `kubectl port-forward` call in it failed outright 
 ```text
 Unable to listen on port 8080: ... bind: address already in use
 error: unable to listen on any of the requested ports: [{8080 80}]
 ```
-— because an earlier port-forward from a previous pass in this same session was still holding port 8080 in the background. The `curl` right after it still came back with a genuine `200 OK`, but that's because it hit the *older* still-running forward, not the one that just failed. Real behavior, just not the command I thought was serving it at the time — documenting it as it actually happened rather than cropping out the error. (The `dns-test`, `node-agent-demo`, and `demo-app-svc` entries in the `get pods`/`get svc` output are unrelated practice from a different exercise running on the same cluster, not part of this assignment.)
+ because an earlier port-forward from a previous pass in this same session was still holding port 8080 in the background. The `curl` right after it still came back with a genuine `200 OK`, but that's because it hit the *older* still-running forward, not the one that just failed. Real behavior, just not the command I thought was serving it at the time  documenting it as it actually happened rather than cropping out the error. (The `dns-test`, `node-agent-demo`, and `demo-app-svc` entries in the `get pods`/`get svc` output are unrelated practice from a different exercise running on the same cluster, not part of this assignment.)
 
 ---
 
-## 📌 Step 6: The `kubectl get` sweep
+## Step 6: The `kubectl get` sweep
 
 ```bash
 kubectl get pods
@@ -201,17 +200,10 @@ pod/nginx-pod   1/1     Running   0          52s
 NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
 service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   64m
 ```
-Worth pointing out honestly: `get deployment` and `get rs` both come back empty — because this exercise only created a bare Pod, not a Deployment or ReplicaSet. That's not a mistake, it's exactly the point the transcript makes in §8: Service/labels/selectors (and by extension, the ReplicaSet/Deployment layer that a Service usually sits in front of) are next session's material, not this one's. The only Service that exists right now is the cluster's own built-in `kubernetes` Service, not anything I created.
+Worth pointing out honestly: `get deployment` and `get rs` both come back empty - because this exercise only created a bare Pod, not a Deployment or ReplicaSet. That's not a mistake, it's exactly the point the transcript makes in §8: Service/labels/selectors (and by extension, the ReplicaSet/Deployment layer that a Service usually sits in front of) are next session's material, not this one's. The only Service that exists right now is the cluster's own built-in `kubernetes` Service, not anything I created.
 
 ---
 
 ## What's deliberately not here
 
-No `service.yaml` in this module. The lecture introduces the *concept* — a Service is needed because a bare Pod can't be exposed the way a Docker container can, and labels/selectors are the mechanism a Service uses to find its Pods — but the transcript is explicit that writing and submitting a Service manifest is the *next* class's hands-on work, not this one's. Didn't invent one just to look more complete.
-
-## Interview-style takeaways
-
-- **Why does `kubectl create` fail the second time but `kubectl apply` doesn't?** `create` is a one-shot "make this object" call with no concept of an existing object to reconcile against — the API server sees a duplicate name and rejects it outright. `apply` computes a diff between the manifest and the live object's last-applied state and patches only what changed, so re-running it against something already up to date is safe by design.
-- **Why did the Pod's AGE not reset after the label was added?** Because `apply` patched the existing Pod object rather than deleting and recreating it. Not every field on a Pod is mutable after creation (you can't change the container image list wholesale, for instance, without a replace), but metadata like labels absolutely is — which is why this specific edit succeeded cleanly.
-- **Why is `kubectl get svc` still showing something even though I never created a Service?** `kubernetes` itself is a real ClusterIP Service, created automatically in every namespace so Pods can reach the API server. It's not something I made — it's cluster plumbing that exists from the moment the cluster comes up.
-- **Why port-forward instead of just trusting `1/1 Running`?** `READY 1/1` only means the container passed its (nonexistent, in this Pod's case) readiness gate and is alive — it says nothing about whether the actual application inside is serving correctly. Getting a real `200 OK` with Nginx's HTML back is the only way to be sure the app itself works, not just the container process.
+No `service.yaml` in this module. The lecture introduces the *concept* - a Service is needed because a bare Pod can't be exposed the way a Docker container can, and labels/selectors are the mechanism a Service uses to find its Pods 
