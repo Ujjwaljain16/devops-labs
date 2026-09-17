@@ -9,7 +9,7 @@
 ---
 
 ## 📌 Executive Summary & Submission Overview
-This repository contains the complete laboratory implementations, source code, container configurations, shell scripts, and technical reports for all DevOps homework modules up to Docker.
+This repository contains the complete laboratory implementations, source code, container configurations, shell scripts, and technical reports for all DevOps homework modules, from Linux fundamentals through Docker and into Kubernetes.
 
 All tasks have been organized into feature folders with humanized, student-crafted documentation, practical examples, architecture diagrams, and terminal execution outputs.
 
@@ -44,6 +44,9 @@ All tasks have been organized into feature folders with humanized, student-craft
 │   ├── html/
 │   │   └── index.html                  # Bind mount source file for live hot-reload
 │   └── README.md                       # Multi-network container isolation, host net, bind mounts & VXLAN overlay
+├── 08-kubernetes-pods-replicasets-deployments/
+│   ├── ques.md                         # Assignment breakdown: required vs optional homework
+│   └── README.md                       # K8s architecture doc review, Minikube install/start/status, Hello Minikube deployment
 └── README.md                           # Master submission guide
 ```
 
