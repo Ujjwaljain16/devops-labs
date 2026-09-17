@@ -1,0 +1,34 @@
+services:
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "8085:80"
+    volumes:
+      - ./frontend/html:/usr/share/nginx/html:ro
+    networks:
+      - frontend-net
+
+  backend:
+    build: ./backend
+    networks:
+      - frontend-net
+      - backend-net
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: compose_demo
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - backend-net
+
+networks:
+  frontend-net:
+  backend-net:
+
+volumes:
+  db-data:

@@ -43,7 +43,9 @@ All tasks have been organized into feature folders with humanized, student-craft
 ├── 07-docker-networking-and-volumes/
 │   ├── html/
 │   │   └── index.html                  # Bind mount source file for live hot-reload
-│   └── README.md                       # Multi-network container isolation, host net, bind mounts & VXLAN overlay
+│   ├── compose-demo/                   # docker-compose.yml: frontend/backend/db stack, backend built from local Dockerfile
+│   ├── ques.md                         # Assignment breakdown: what Tasks 1-4 already covered vs. Tasks 5-7 added later
+│   └── README.md                       # Multi-network isolation, host net, bind mounts, VXLAN overlay, multi-network docker inspect, named volumes, Compose
 ├── 08-kubernetes-pods-replicasets-deployments/
 │   ├── ques.md                         # Assignment breakdown: required vs optional homework
 │   └── README.md                       # K8s architecture doc review, Minikube install/start/status, Hello Minikube deployment
