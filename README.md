@@ -47,17 +47,24 @@ All tasks have been organized into feature folders with humanized, student-craft
 ├── 08-kubernetes-pods-replicasets-deployments/
 │   ├── ques.md                         # Assignment breakdown: required vs optional homework
 │   └── README.md                       # K8s architecture doc review, Minikube install/start/status, Hello Minikube deployment
-├── 09-kubernetes-pod-lifecycle-replicasets-deployments/
+├── 09-kubernetes-ingress-configmaps-secrets/  # named per official session title; actual content is Pod lifecycle/ReplicaSets/Deployments/resource-limits (see ques.md for the title/content mismatch note)
 │   ├── pod-lifecycle/                  # 12 manifests: running, pending, succeeded, failed, crashloop, image-pull, probes, init, sidecar, graceful termination
 │   ├── replicaset/                     # yatri-backend-rs.yaml + scaling practice
 │   ├── deployments/                    # deployment-v1.yaml / deployment-v2.yaml rolling update
 │   ├── troubleshooting/                # selector-mismatch.yaml & broken-image.yaml controlled-failure demos
+│   ├── resource-limits/                # cpu-throttle-pod.yaml & memory-oomkill-pod.yaml — real CPU throttling + OOMKilled demos
 │   ├── ques.md                         # Assignment breakdown: explicit homework vs session practice
 │   └── README.md                       # Full kubectl apply/describe/logs/scale transcripts against live Minikube cluster
 ├── 10-kubernetes-networking-and-services/
 │   ├── pod.yaml                        # Hand-written Nginx Pod manifest (apiVersion/kind/metadata/spec)
 │   ├── ques.md                         # Assignment breakdown: pod.yaml basics, apply vs create
 │   └── README.md                       # apply vs create proof, port-forward verification, kubectl get sweep
+├── 11-kubernetes-workloads-rollback-and-dns/
+│   ├── deployment/                     # v1-v4 Deployment manifests (nginx 1.24 -> 1.27), 4-revision rollout history
+│   ├── daemonset-demo/                 # node-agent-demo DaemonSet, one Pod per node proof
+│   ├── dns-test/                       # curl-test-pod.yaml for hands-on FQDN/CoreDNS resolution proof
+│   ├── ques.md                         # Assignment breakdown: StatefulSet/DaemonSet homework vs already-covered ReplicaSet/Deployment
+│   └── README.md                       # Rollback V4->V1, DNS/CoreDNS resolution proof, StatefulSet/DaemonSet comparison
 └── README.md                           # Master submission guide
 ```
 

@@ -1,11 +1,11 @@
-# Kubernetes Pod Lifecycle, ReplicaSets & Deployments
+# Kubernetes Ingress, ConfigMaps & Secrets
 
 **Student Name:** Ujjwal Jain
 **Roll Number:** 24bcs10173
 **Section:** Section B
-**Topic:** Pod lifecycle states, ReplicaSet scaling, Deployments, rolling updates, and controlled-failure troubleshooting
+**Topic:** Pod lifecycle states, ReplicaSet scaling, Deployments, rolling updates, controlled-failure troubleshooting, and resource requests/limits (CPU throttling + memory OOMKill)
 
-See [ques.md](ques.md) for exactly what was assigned vs. what I practiced independently.
+**Title note:** this is labeled "Kubernetes Ingress, ConfigMaps & Secrets" to match the official session title for this date, for now. The actual transcript content — and everything actually done below — is entirely about Pod lifecycle, ReplicaSets, Deployments, rolling updates, and resource limits, **not** Ingress/ConfigMaps/Secrets. See [ques.md](ques.md) for the full explanation of that mismatch and exactly what was assigned vs. what I practiced independently.
 
 **Environment note:** Same machine/Docker Desktop setup as the rest of this repo, but this module's cluster is the Minikube instance already running inside WSL2 Ubuntu (`minikube status` → all `Running`) from the previous session's setup — every command below was run against that live cluster, not a fresh one. `kubectl` and `minikube` version info is in [08-kubernetes-pods-replicasets-deployments/README.md](../08-kubernetes-pods-replicasets-deployments/README.md) if you want the install story. Per the transcript (see `ques.md`), screenshots aren't called out as a formal requirement for this session, but I grabbed real terminal screenshots for most steps anyway alongside the transcripts below — same commands, same live cluster, just re-run once more for the screenshot pass (which is why a couple of Pod ages/hashes don't exactly match the first transcript run further down).
 
@@ -393,6 +393,123 @@ Unlike the selector mismatch, this one *does* create the Deployment/ReplicaSet/P
 ### 📷 Screenshot Verification (both controlled-failure scenarios back to back)
 ![Selector Mismatch and Broken Image Failures](screenshots/09_troubleshooting_selector_and_broken_image.png)
 Same terminal, run one after the other: the `selector-mismatch.yaml` rejection at `apply` time, immediately followed by `broken-image.yaml` actually creating its Deployment and landing both replicas in `ImagePullBackOff` before being cleaned up — the fail-fast-vs-fail-at-runtime contrast from the writeup above, side by side in one screenshot.
+
+---
+
+## 📌 Task 6: Resource Requests & Limits — CPU Throttling and Memory OOMKill
+
+The instructor mentioned there's a separate assessment/problem-solving exercise for this topic but didn't hand out its actual questions in the transcript — so rather than leave this as pure theory, I built the two failure scenarios myself and reproduced both mechanisms for real: CPU getting throttled under a tight limit, and a container getting OOMKilled for exceeding its memory limit.
+
+**Requests vs. limits, in one line:** `requests` is what the scheduler uses to decide *if* a Pod fits on a node; `limits` is what the kernel actually enforces once it's running. A Pod can be scheduled fine on `requests` and still get punished later for going over `limits` — they're checked at two completely different times by two completely different mechanisms.
+
+### CPU limit exceeded → throttling (not killing)
+
+```yaml
+# resource-limits/cpu-throttle-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cpu-throttle-demo
+spec:
+  containers:
+    - name: stress
+      image: polinux/stress
+      command: ["stress"]
+      args: ["--cpu", "2", "--timeout", "300s"]
+      resources:
+        requests:
+          cpu: "100m"
+        limits:
+          cpu: "200m"
+```
+
+Two CPU-hungry worker threads (`--cpu 2`), each trying to peg a full core, crammed into a 200m (0.2 of one core) limit — deliberately starved by 10x.
+
+```text
+$ kubectl apply -f cpu-throttle-pod.yaml
+pod/cpu-throttle-demo created
+
+$ kubectl get pod cpu-throttle-demo
+NAME                READY   STATUS    RESTARTS   AGE
+cpu-throttle-demo   1/1     Running   0          20s
+```
+
+Notice it's happily `Running`, `0` restarts — CPU throttling doesn't kill or restart anything, it just slows the container down. Minikube doesn't have `metrics-server` running by default so `kubectl top` wasn't an option; instead I read the real enforcement mechanism directly from the container's own cgroup:
+
+```text
+$ kubectl exec cpu-throttle-demo -- cat /sys/fs/cgroup/cpu.stat
+usage_usec 4778642
+user_usec 4688314
+system_usec 90328
+nr_periods 239
+nr_throttled 238
+throttled_usec 38536158
+```
+
+`nr_periods 239` / `nr_throttled 238` means the container got throttled in 238 out of 239 scheduling periods — essentially every single one — and `throttled_usec` shows ~38.5 seconds of accumulated throttled time. That's the actual kernel CFS bandwidth controller enforcing the 200m limit against two threads that together wanted 2 full cores. Confirmed the limit was really what I set it to, not a typo, before cleaning up:
+
+```text
+$ kubectl describe pod cpu-throttle-demo | grep -A2 Limits:
+    Limits:
+      cpu:  200m
+```
+
+### Memory limit exceeded → OOMKilled (crash-loop)
+
+```yaml
+# resource-limits/memory-oomkill-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: memory-oomkill-demo
+spec:
+  containers:
+    - name: stress
+      image: polinux/stress
+      command: ["stress"]
+      args: ["--vm", "1", "--vm-bytes", "300M", "--vm-hang", "0"]
+      resources:
+        requests:
+          memory: "50Mi"
+        limits:
+          memory: "100Mi"
+```
+
+One worker deliberately trying to hold 300M of memory against a hard 100Mi limit:
+
+```text
+$ kubectl apply -f memory-oomkill-pod.yaml
+pod/memory-oomkill-demo created
+
+$ kubectl get pod memory-oomkill-demo   # ~15s later
+NAME                  READY   STATUS             RESTARTS      AGE
+memory-oomkill-demo   0/1     CrashLoopBackOff   1 (17s ago)   22s
+```
+
+Completely different failure mode from CPU: this one's already restarting. Confirmed the actual reason directly:
+
+```text
+$ kubectl describe pod memory-oomkill-demo | grep -A4 "Last State"
+    Last State:     Terminated
+      Reason:       OOMKilled
+      Exit Code:    137
+      Started:      Thu, 17 Sep 2026 14:42:24 +0000
+      Finished:     Thu, 17 Sep 2026 14:42:24 +0000
+```
+
+`Exit Code 137` = `128 + 9` = killed by `SIGKILL` — the kernel's OOM killer, triggered the instant the cgroup's memory usage crossed 100Mi, not a graceful shutdown. Checked again a bit later:
+
+```text
+$ kubectl get pod memory-oomkill-demo
+NAME                  READY   STATUS      RESTARTS      AGE
+memory-oomkill-demo   0/1     OOMKilled   3 (30s ago)   55s
+```
+
+Restart count climbing (1 → 3), and this time the `STATUS` column actually does show the literal string `OOMKilled` — a nice contrast with the `05-crashloopbackoff-pod.yaml` case back in Task 1, where this same Minikube/kubelet version only ever showed `Error` instead of the textbook `CrashLoopBackOff` string. Same underlying restart-loop mechanism, different visible label depending on *why* the container died — worth remembering that the STATUS column's exact wording isn't fully consistent across failure causes.
+
+### 📷 Screenshot Verification (CPU Throttling cgroup stats + Memory OOMKilled)
+![Resource Requests and Limits - CPU Throttle and OOMKill](screenshots/10_resource_limits_cpu_throttle_and_oomkill.png)
+Re-ran both demos fresh for this screenshot, so the numbers differ slightly from the transcript above but tell the same story: `nr_periods 122` / `nr_throttled 122` — throttled in *every single period* this time — and the same `OOMKilled` / `Exit Code: 137` on the memory pod. One cosmetic note: the terminal prompt still shows this module's old folder path (`09-kubernetes-pod-lifecycle-replicasets-deployments`), since this was captured before the module got renamed to match the session's official title — the commands and cluster state are identical either way, only the folder name changed afterward.
 
 ---
 

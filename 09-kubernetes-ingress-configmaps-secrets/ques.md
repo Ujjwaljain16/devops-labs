@@ -1,9 +1,13 @@
-# Assignment Breakdown — Kubernetes Pod Lifecycle, ReplicaSets & Deployments
+# Assignment Breakdown — Kubernetes Ingress, ConfigMaps & Secrets
 
 **Course:** SST DevOps & Cloud [SWE]
-**Lecture:** Kubernetes Pod Lifecycle, ReplicaSets & Deployments
+**Lecture (official session title):** Kubernetes Ingress, ConfigMaps & Secrets
+**Actual lecture content:** Pod lifecycle, ReplicaSets, Deployments, rolling updates, resource requests/limits
 **Date:** 8 September 2026
-**Source:** Instructor's session transcript, converted into a checklist. Note from the transcript itself: the uploaded file was titled "Kubernetes Ingress, ConfigMaps & Secrets," but the actual content is entirely about Pod lifecycle, ReplicaSets, Deployments and rolling updates — Ingress/ConfigMaps/Secrets aren't in here because they're just not in the transcript.
+**Instructor:** Ritesh Prajapati
+**Source:** Instructor's session transcript, converted into a checklist.
+
+**Title mismatch, explained once and for all:** the uploaded transcript file was titled "Kubernetes Ingress, ConfigMaps & Secrets" — that's also this module's official session title for the date, so the README and this file are labeled that way for now, to match the syllabus/session record. But the actual transcript *content* is entirely about Pod lifecycle, ReplicaSets, Deployments, rolling updates, and resource limits. Ingress, ConfigMaps, and Secrets are **not** substantiated by the transcript text and are **not** treated as done or as homework here — this module's real content is everything below, labeled honestly as what it actually is.
 
 This file is "what was assigned," kept separate from "how I did it." The execution, real `kubectl` output, and screenshots for every item below live in [README.md](README.md).
 
@@ -22,6 +26,7 @@ The instructor's clearest direct instruction, given right after the Deployment v
 | 3 | `deployment-v1.yaml` — deploy, confirm via `kubectl get all`, scale to 5 replicas | [deployments/deployment-v1.yaml](deployments/deployment-v1.yaml) |
 | 4 | `deployment-v2.yaml` over the running v1 — watched the rolling update live via `kubectl get pods -w` | [deployments/deployment-v2.yaml](deployments/deployment-v2.yaml) |
 | 5 | `troubleshooting/selector-mismatch.yaml` and `troubleshooting/broken-image.yaml` — deliberately broken files to see the actual errors | [troubleshooting/](troubleshooting/) |
+| 6 | Resource requests/limits — built my own CPU-throttle and memory-OOMKill demos since the instructor mentioned an assessment exists but didn't hand out its actual questions in the transcript | [resource-limits/](resource-limits/) |
 
 ## 3. Pod lifecycle states this covers (and why 12 files, not 7)
 
@@ -50,9 +55,9 @@ The first 6 map to what the instructor demoed live. The last 6 (readiness, liven
 
 Per the transcript, these are either recap or "next session," not today's deliverable:
 
-- Ingress, ConfigMaps, Secrets — not covered in this session's actual content despite the misleading upload title
+- Ingress, ConfigMaps, Secrets — not covered in this session's actual content despite the session's official title
 - Blue-Green / Canary / geo-based deployment strategies — mentioned conceptually only, no hands-on example given
-- Resource requests/limits deep-dive assessment — instructor mentioned a separate assessment/problem-solving exercise exists for this, but didn't hand out its actual questions in this transcript
+- The instructor's own specific assessment/problem-solving questions on resource limits — never handed out in this transcript, so I couldn't reproduce *those exact* questions; instead I built and ran my own CPU-throttle and memory-OOMKill scenarios to demonstrate the same underlying mechanisms for real (see Task 6 in README.md)
 
 ## 6. My completion checklist
 
@@ -64,3 +69,5 @@ Per the transcript, these are either recap or "next session," not today's delive
 - [x] Confirmed the live image tag actually flipped from `nginx:1.25-alpine` to `nginx:1.27-alpine` post-rollout
 - [x] `selector-mismatch.yaml` — reproduced the exact API-server rejection for a selector/template-label mismatch
 - [x] `broken-image.yaml` — reproduced `ImagePullBackOff` on a real stuck rollout, then cleaned it up
+- [x] CPU limit exceeded — reproduced real throttling via `polinux/stress` capped at `200m` against 2 CPU-hungry workers, confirmed via `/sys/fs/cgroup/cpu.stat` (`nr_throttled 238` of `nr_periods 239`)
+- [x] Memory limit exceeded — reproduced a real `OOMKilled` (`exit code 137`) via `polinux/stress` requesting 300M against a `100Mi` limit, confirmed via `kubectl describe pod`, restart count climbing (crash-loop)
