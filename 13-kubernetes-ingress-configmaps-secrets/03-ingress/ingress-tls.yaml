@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: campus-ingress-tls
+  labels:
+    app: campus
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - portal.campus.local
+        - api.campus.local
+      secretName: campus-tls-cert
+  rules:
+    # hybrid: host decides *which app*, path decides *which service inside that host*
+    - host: portal.campus.local
+      http:
+        paths:
+          - path: /status
+            pathType: Prefix
+            backend:
+              service:
+                name: campus-api-svc
+                port:
+                  number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: campus-portal-svc
+                port:
+                  number: 80
+    - host: api.campus.local
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: campus-api-svc
+                port:
+                  number: 80

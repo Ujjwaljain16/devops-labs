@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: campus-portal-conf
+  labels:
+    app: campus
+data:
+  default.conf: |
+    server {
+      listen 80;
+      location / {
+        default_type text/html;
+        return 200 "<html><head><title>Campus Portal</title></head><body>CAMPUS PORTAL (path seen: $request_uri)</body></html>\n";
+      }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: campus-api-conf
+  labels:
+    app: campus
+data:
+  default.conf: |
+    server {
+      listen 80;
+      location / {
+        default_type text/plain;
+        return 200 "CAMPUS API (path seen: $request_uri)\n";
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: campus-portal
+  labels:
+    app: campus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: campus
+      component: portal
+  template:
+    metadata:
+      labels:
+        app: campus
+        component: portal
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          volumeMounts:
+            - name: conf
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: conf
+          configMap:
+            name: campus-portal-conf
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: campus-api
+  labels:
+    app: campus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: campus
+      component: api
+  template:
+    metadata:
+      labels:
+        app: campus
+        component: api
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          volumeMounts:
+            - name: conf
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: conf
+          configMap:
+            name: campus-api-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: campus-portal-svc
+  labels:
+    app: campus
+spec:
+  selector:
+    app: campus
+    component: portal
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: campus-api-svc
+  labels:
+    app: campus
+spec:
+  selector:
+    app: campus
+    component: api
+  ports:
+    - port: 80
+      targetPort: 80

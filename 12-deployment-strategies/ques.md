@@ -1,6 +1,6 @@
 # Assignment - Deployment Strategies: Blue-Green, Canary & Recreate
 
-**Source:** "DevOps Assignment Season 2" consolidated doc, Lecture 10, Tasks 11-13. These three were flagged as a gap during a full repo audit against that doc - [module 09](../09-kubernetes-ingress-configmaps-secrets/README.md)'s Task 7 theory writeup already explains all four deployment strategies conceptually (RollingUpdate, Recreate, Blue-Green, Canary), but only RollingUpdate had actual hands-on execution anywhere in the repo. This module is the hands-on half for the other three.
+**Source:** "DevOps Assignment Season 2" consolidated doc, Lecture 10, Tasks 11-13. These three were flagged as a gap during a full repo audit against that doc - [module 09](../09-kubernetes-pods-replicasets-deployments/README.md)'s Task 7 theory writeup already explains all four deployment strategies conceptually (RollingUpdate, Recreate, Blue-Green, Canary), but only RollingUpdate had actual hands-on execution anywhere in the repo. This module is the hands-on half for the other three.
 
 ## 1. What's actually required
 

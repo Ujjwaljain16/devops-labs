@@ -44,10 +44,10 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── compose-demo/                   # docker-compose.yml: frontend/backend/db stack, backend built from local Dockerfile
 │   ├── ques.md                         # Assignment breakdown: what Tasks 1-4 already covered vs. Tasks 5-7 added later
 │   └── README.md                       # Multi-network isolation, host net, bind mounts, VXLAN overlay, multi-network docker inspect, named volumes, Compose
-├── 08-kubernetes-pods-replicasets-deployments/
+├── 08-kubernetes-fundamentals/
 │   ├── ques.md                         # Assignment breakdown: required vs optional homework
 │   └── README.md                       # K8s architecture doc review, Minikube install/start/status, Hello Minikube deployment
-├── 09-kubernetes-ingress-configmaps-secrets/  # named per official session title; actual content is Pod lifecycle/ReplicaSets/Deployments/resource-limits (see ques.md for the title/content mismatch note)
+├── 09-kubernetes-pods-replicasets-deployments/
 │   ├── pod-lifecycle/                  # 12 manifests: running, pending, succeeded, failed, crashloop, image-pull, probes, init, sidecar, graceful termination
 │   ├── replicaset/                     # yatri-backend-rs.yaml + scaling practice
 │   ├── deployments/                    # deployment-v1.yaml / deployment-v2.yaml rolling update
@@ -72,6 +72,13 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── 04-recreate/                    # deployment-v1/v2.yaml, strategy.type Recreate — live-captured downtime window
 │   ├── ques.md                         # Assignment breakdown: gap-filled from repo audit against Lecture 10 Tasks 11-13
 │   └── README.md                       # Blue-Green cutover, canary traffic-split (incl. port-forward gotcha), recreate outage capture
+├── 13-kubernetes-ingress-configmaps-secrets/
+│   ├── 01-configmap/                   # app-config.yaml — declarative ConfigMap + JSONPath queries
+│   ├── 02-secret/                      # db-secret.yaml — Opaque Secret, base64 decode, trailing-newline gotcha
+│   ├── 03-ingress/                     # campus-apps + host-based Ingress + hybrid host/path/TLS Ingress
+│   ├── 04-full-demo/                   # ConfigMap+Secret+backend+frontend+path-based Ingress, run-demo.sh / cleanup.sh
+│   ├── ques.md                         # Assignment breakdown (Lecture 12 task list, 14 tasks)
+│   └── README.md                       # ConfigMap live-update drill, Secret gotchas, NGINX Ingress, routing, TLS termination
 └── README.md                           # Master submission guide
 ```
 

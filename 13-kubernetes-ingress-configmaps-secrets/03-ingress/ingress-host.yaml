@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: campus-ingress-host
+  labels:
+    app: campus
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: portal.campus.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: campus-portal-svc
+                port:
+                  number: 80
+    - host: api.campus.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: campus-api-svc
+                port:
+                  number: 80

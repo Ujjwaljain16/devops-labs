@@ -181,7 +181,7 @@ demo-app-7f7fbb5c9b-ndt89   1/1     Running   2 (6m42s ago)   4h28m
 
 ## Task 2: ReplicaSet vs. Deployment
 
-This one wasn't a gap to fill - [module 09](../09-kubernetes-ingress-configmaps-secrets/README.md) already has the real hands-on evidence (creating/scaling a bare ReplicaSet, then a Deployment doing a rolling update watched live). The instructor's ask here is to be able to *say it clearly*, so:
+This one wasn't a gap to fill - [module 09](../09-kubernetes-pods-replicasets-deployments/README.md) already has the real hands-on evidence (creating/scaling a bare ReplicaSet, then a Deployment doing a rolling update watched live). The instructor's ask here is to be able to *say it clearly*, so:
 
 A **ReplicaSet**'s entire job is: "keep N Pods matching this label selector running, right now." That's it - no history, no update strategy. If you edit a ReplicaSet's Pod template, existing Pods don't change; only new Pods created afterward pick up the new template.
 

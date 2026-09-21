@@ -1,4 +1,4 @@
-# Kubernetes Pods, ReplicaSets & Deployments
+# Kubernetes Fundamentals
 
 **Student Name:** Ujjwal Jain
 **Roll Number:** 24bcs10173

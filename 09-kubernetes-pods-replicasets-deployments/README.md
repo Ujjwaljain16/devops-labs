@@ -1,4 +1,4 @@
-# Kubernetes Ingress, ConfigMaps & Secrets
+# Kubernetes Pods, ReplicaSets & Deployments
 
 **Student Name:** Ujjwal Jain
 **Roll Number:** 24bcs10173

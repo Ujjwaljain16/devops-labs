@@ -1,4 +1,4 @@
-# Assignment - Kubernetes Pods, ReplicaSets & Deployments
+# Assignment - Kubernetes Fundamentals
 ---
 
 ## 1. What's actually required
