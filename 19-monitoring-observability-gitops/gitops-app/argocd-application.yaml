@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: session19-gitops-demo
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Ujjwaljain16/devops-labs.git
+    targetRevision: main
+    path: 19-monitoring-observability-gitops/gitops-app/app
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: session19-gitops
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
