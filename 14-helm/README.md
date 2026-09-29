@@ -284,4 +284,6 @@ Back to exactly 2 Pods on `1.26-alpine` — matching revision 2's state. Worth f
 
 ## Screenshots
 
-*(pending — see the checkpoint note)*
+`helm list`, `helm history myapp-release` (all 4 revisions incl. the rollback), and the final Pod state — 2 Running on `1.26-alpine`, matching revision 4:
+
+![Helm history and final Pod state](screenshots/01_helm_history_and_pods.png)

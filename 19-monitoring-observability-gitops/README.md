@@ -278,4 +278,6 @@ KUBERNETES -> actual state
 
 ## Screenshots
 
-*(pending — see the checkpoint note)*
+Argo CD Application `Synced`/`Healthy`, the full monitoring stack Running, and the GitOps-managed Deployment at its final `3/3` state (post self-heal):
+
+![Argo CD status, monitoring pods, and final deployment state](screenshots/01_argocd_and_monitoring.png)

@@ -441,4 +441,14 @@ postgres://demo-db:5432/app
 
 ## Screenshots
 
-*(pending — see the checkpoint note)*
+All demo pods healthy after every fix was applied:
+
+![All pods Running after fixes](screenshots/01_all_pods_running.png)
+
+DNS resolution working correctly once the right name/namespace was used (issue 7):
+
+![DNS resolution fixed](screenshots/02_dns_resolution_fixed.png)
+
+CrashLoopBackOff pod's event history (issue 1):
+
+![CrashLoopBackOff events](screenshots/03_crashloop_events.png)

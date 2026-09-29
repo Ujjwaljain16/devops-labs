@@ -29,4 +29,4 @@ Helm wasn't installed in WSL. Installed it as a user-local binary (`~/bin/helm`,
 - [x] Task 1: all 11 helm commands demonstrated with real output (create, install, list, status, get values/manifest, upgrade, history, rollback, uninstall, repo add/list/update, search repo/hub)
 - [x] Task 2: full install -> upgrade -> verify -> upgrade -> verify -> rollback -> verify workflow, real revisions (1 -> 2 -> 3 -> 4/rollback-to-2), each verified against actual Pod counts and image tags, not just `helm`'s own success message
 - [x] Task 3: satisfied by the one real chart (`myapp-chart/`) + its full lifecycle above
-- [ ] Screenshots — pending user handoff
+- [x] Screenshots — helm history (all 4 revisions) + final Pod state

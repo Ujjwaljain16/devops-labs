@@ -61,4 +61,4 @@ Module 09's `troubleshooting/` folder already has `selector-mismatch.yaml` and `
 - [x] Pod networking issues: reproduced (wrong targetPort, Endpoints exist but refused), diagnosed, fixed, verified
 - [x] Configuration issues: reproduced (missing ConfigMap key, CreateContainerConfigError), diagnosed, fixed, verified
 - [x] Task 3 report format (Commands/Problem statement/Investigation steps/Root cause/Solution/Before-after output) applied to each issue in README.md
-- [ ] Screenshots — pending user handoff
+- [x] Screenshots — all pods Running, DNS resolution fixed, CrashLoopBackOff events

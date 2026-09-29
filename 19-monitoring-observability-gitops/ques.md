@@ -42,4 +42,4 @@ Unlike modules 15/16, this push doesn't trigger any CI workflow (no path matches
 - [x] Task 1: Alerts - full real lifecycle (inactive -> pending -> firing in Prometheus AND Alertmanager -> resolved), including a genuine `up==0` vs `absent()` gotcha found and fixed, not just a static rule
 - [x] Task 2: Observability documentation (3 pillars, why it matters, common tools, Kubernetes observability) - honest about the one gap (no real tracing backend stood up)
 - [x] Task 3: Full Argo CD GitOps demo - install (incl. a real CRD-size apply issue found and fixed), sync, verify, replica change via real git push, watched reconciliation, demonstrated self-healing with real event log proof
-- [ ] Screenshots - pending user handoff
+- [x] Screenshots - Argo CD Synced/Healthy, monitoring pods Running, final 3/3 deployment state
