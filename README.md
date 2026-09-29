@@ -17,7 +17,7 @@ This repository contains the complete laboratory implementations, source code, c
 
 ```text
 .
-├── .github/workflows/                   # module15-converter-cicd.yml — GitHub Actions workflow (must live at repo root)
+├── .github/workflows/                   # module15-converter-cicd.yml, module16-devsecops.yml (must live at repo root)
 ├── 01-linux-fundamentals/
 │   └── README.md                       # Soft/Hard links, adduser vs useradd, journalctl, command cheat sheet
 ├── 02-shell-scripting/
@@ -86,7 +86,11 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── Dockerfile                       # Verified locally (docker build + docker run)
 │   ├── ques.md                          # Assignment breakdown + where "10-final-cicd-pipeline" actually came from
 │   └── README.md                        # Real pushed pipeline (3 live Actions runs incl. a genuine break-then-fix cycle)
-├── 16-cicd-devsecops/                   # TODO — Session 17: CI/CD + DevSecOps (SAST/SCA/secret/image scanning)
+├── 16-cicd-devsecops/
+│   ├── app/, tests/                     # Own Flask app + pytest suite — verified locally (8 passed)
+│   ├── Dockerfile, k8s/                 # Verified locally; k8s manifests for manual Minikube deploy (CI can't reach it)
+│   ├── ques.md                          # Assignment breakdown, tool substitutions, why deploy is manual not CI
+│   └── README.md                        # Bandit/Trivy real findings + fixes, pipeline run pending a git push (needs go-ahead)
 ├── 17-terraform-infrastructure-as-code/ # TODO — Session 18: Terraform S3 demo (needs AWS)
 ├── 18-cloud-terraform-in-action/        # TODO — Session 19: end-to-end Terraform cloud infra (needs AWS)
 ├── 19-monitoring-observability-gitops/  # TODO — Session 20: Monitoring, Observability, GitOps
