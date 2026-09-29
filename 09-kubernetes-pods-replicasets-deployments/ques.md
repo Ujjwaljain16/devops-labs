@@ -1,34 +1,36 @@
 # Assignment - Kubernetes Pods, ReplicaSets & Deployments
+
+The commands, real output, and screenshots for everything below are in [README.md](README.md).
+
 ---
 
-## 1. What's actually required
+## 1. What's required
 
-- Pod lifecycle states: apply and inspect manifests for Running, Pending, Succeeded, Failed, CrashLoopBackOff, ImagePullBackOff, probes (readiness, liveness, startup), init containers, multi-container pods, and graceful termination - plus watching a short-lived `hello.yaml` Pod's transient states live via `kubectl get pods -w`
-- ReplicaSet management: deploy `yatri-backend-rs.yaml`, verify 3/3 pods, test scaling (scale up to 5, down to 1, back to 3), and prove self-healing by manually deleting a Pod and watching the controller replace it
-- Deployments and rolling updates: deploy `deployment-v1.yaml`, scale replicas, update with `deployment-v2.yaml`, and monitor rolling rollout strategy (`maxSurge` / `maxUnavailable`) live
-- Troubleshooting scenarios, diagnosis *and* recovery: reproduce selector/template label mismatch errors then fix and re-apply successfully; reproduce a broken-image rollout stuck in `ImagePullBackOff` (with a healthy v1 already running underneath), verify the old Pods survive untouched, then recover with `kubectl rollout undo`
-- Resource requests and limits: test and verify CPU throttling and memory OOMKill (`exit code 137`) under resource limits
-- Theoretical writeup: the 4 ports, labels vs. selectors, the 4 deployment strategies, `maxSurge`/`maxUnavailable` math, and requests vs. limits with GB vs. GiB
+**Pod lifecycle states.** Apply and inspect manifests for Running, Pending, Succeeded, Failed, CrashLoopBackOff, ImagePullBackOff, probes (readiness, liveness, startup), init containers, multi-container pods, and graceful termination, plus watch a short-lived `hello.yaml` Pod's transient states live via `kubectl get pods -w`.
 
-## 2. Explicitly NOT part of this assignment
+**ReplicaSet management.** Deploy `yatri-backend-rs.yaml`, verify 3/3 pods, test scaling (up to 5, down to 1, back to 3), and prove self-healing by manually deleting a Pod and watching the controller replace it.
 
-- Ingress, ConfigMaps, and Secrets - that's the 8 Sep session, done in [module 11](../11-kubernetes-ingress-configmaps-secrets/README.md). (An earlier version of this module was filed under that session's title because the transcript I'd been given for that date turned out to be Pod-lifecycle content; the folder is now named for what it actually contains.)
-- Blue-Green, Canary, and Recreate deployment strategies as hands-on labs - covered here only as theory (Task 7); the actual hands-on execution for these three lives in [extra-deployment-strategies](../extra-deployment-strategies/README.md), which sits outside the doc's numbered 20-module sequence
-- StatefulSet hands-on deployment - covered conceptually here, actual deployment lives in [extra-kubernetes-workloads-rollback-and-dns](../extra-kubernetes-workloads-rollback-and-dns/README.md), which also sits outside the doc's numbered 20-module sequence
+**Deployments and rolling updates.** Deploy `deployment-v1.yaml`, scale replicas, update with `deployment-v2.yaml`, and monitor the rolling rollout strategy (`maxSurge`/`maxUnavailable`) live.
+
+**Troubleshooting.** Reproduce a selector/template label mismatch error, then fix and reapply successfully; reproduce a broken-image rollout stuck in `ImagePullBackOff` with a healthy v1 already running underneath, verify the old Pods survive untouched, then recover with `kubectl rollout undo`.
+
+**Resource requests and limits.** Test and verify CPU throttling and memory OOMKill (`exit code 137`) under resource limits.
+
+**Theoretical writeup.** The 4 ports, labels vs. selectors, the 4 deployment strategies, `maxSurge`/`maxUnavailable` math, and requests vs. limits with GB vs. GiB.
+
+## 2. Notes
+
+Ingress, ConfigMaps, and Secrets are not part of this assignment. That is the 8 September session, covered in [module 11](../11-kubernetes-ingress-configmaps-secrets/README.md). An earlier version of this module was filed under that session's title, because the transcript I had been given for that date turned out to be Pod-lifecycle content, so the folder is now named for what it actually contains.
+
+Blue-Green, Canary, and Recreate deployment strategies are covered here only as theory (Task 7). The actual hands-on execution for those three lives in [extra-deployment-strategies](../extra-deployment-strategies/README.md), which sits outside the numbered 20-module sequence. StatefulSet hands-on deployment is likewise covered only conceptually here, with the real deployment in [extra-kubernetes-workloads-rollback-and-dns](../extra-kubernetes-workloads-rollback-and-dns/README.md), also outside the numbered sequence.
 
 ## 3. My completion checklist
 
-- [x] All 12 pod-lifecycle files applied, watched, described, and logged individually
-- [x] Confirmed `kubectl logs` fails on a Pod stuck in Pending (no container exists yet to have logs)
-- [x] `hello.yaml` - watched `Pending -> ContainerCreating -> Running -> Completed` live via `kubectl get pods -w`, not just checked the end state
-- [x] `yatri-backend-rs` ReplicaSet deployed, confirmed 3/3, scaled to 5 -> 1 -> back to 3
-- [x] Self-healing proved: manually deleted a running RS Pod, confirmed the controller created a brand-new one (different name) within seconds, deleted the standalone RS after testing
-- [x] `deployment-v1.yaml` applied, `kubectl get all` shows Pod + ReplicaSet + Deployment + Service together, scaled to 5 replicas
-- [x] `deployment-v2.yaml` applied over the running v1, rolling update observed live via `kubectl get pods -w`
-- [x] Confirmed the live image tag actually flipped from `nginx:1.25-alpine` to `nginx:1.27-alpine` post-rollout
-- [x] `selector-mismatch.yaml` - reproduced the exact API-server rejection, then fixed the label and re-applied successfully (`selector-mismatch-fixed.yaml`)
-- [x] `broken-image.yaml` - reproduced `ImagePullBackOff` on a real stuck rollout, then cleaned it up
-- [x] `broken-image-v1.yaml` / `broken-image-v2.yaml` - the full recovery drill: healthy v1 deployed first, broken v2 surged on top, confirmed old Pods stayed `Running` untouched while only the new Pod failed, then recovered with `kubectl rollout undo` and confirmed the image landed back on the known-good tag
-- [x] CPU limit exceeded - reproduced real throttling via `polinux/stress` capped at `200m` against 2 CPU-hungry workers, confirmed via `/sys/fs/cgroup/cpu.stat`
-- [x] Memory limit exceeded - reproduced a real `OOMKilled` (`exit code 137`) via `polinux/stress` requesting 300M against a `100Mi` limit, confirmed via `kubectl describe pod`
-- [x] Theoretical writeup covering the 4 ports, labels vs. selectors, the 4 deployment strategies, `maxSurge`/`maxUnavailable` math, and requests vs. limits with GB vs. GiB units
+- [x] Task 1: all 12 pod-lifecycle files applied, watched, described, and logged individually, including confirming that `kubectl logs` fails on a Pod stuck in Pending
+- [x] Task 1: `hello.yaml` watched live via `kubectl get pods -w` through `Pending -> ContainerCreating -> Running -> Completed`, not just checked at the end state
+- [x] Task 2: `yatri-backend-rs` ReplicaSet deployed, confirmed 3/3, scaled to 5 -> 1 -> back to 3, with self-healing proved by deleting a running Pod and watching the controller create a replacement
+- [x] Task 3: `deployment-v1.yaml` applied, `kubectl get all` shows Pod + ReplicaSet + Deployment + Service together, scaled to 5 replicas
+- [x] Task 4: `deployment-v2.yaml` applied over the running v1, rolling update observed live via `kubectl get pods -w`, image tag confirmed to flip from `nginx:1.25-alpine` to `nginx:1.27-alpine`
+- [x] Task 5: `selector-mismatch.yaml` API-server rejection reproduced and fixed, `broken-image.yaml` `ImagePullBackOff` reproduced, and the full v1/v2 recovery drill completed with `kubectl rollout undo`
+- [x] Task 6: CPU throttling and memory OOMKill (`exit code 137`) both reproduced with `polinux/stress` and confirmed via cgroup stats and `kubectl describe pod`
+- [x] Task 7: theoretical writeup covering the 4 ports, labels vs. selectors, the 4 deployment strategies, `maxSurge`/`maxUnavailable` math, and requests vs. limits with GB vs. GiB units

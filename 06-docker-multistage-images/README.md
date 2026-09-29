@@ -15,7 +15,7 @@ In traditional single-stage Docker builds, compilers, build toolchains (SDKs, he
 - Increased security attack surface (unnecessary utilities like `gcc`, package managers, etc.).
 - Slow pull/push times in CI/CD pipelines.
 
-With **Multi-Stage Builds**, we separate the compilation environment from the final runtime image, resulting in image sizes dropping from hundreds of megabytes down to ~15MB.
+With **Multi-Stage Builds**, I separate the compilation environment from the final runtime image, resulting in image sizes dropping from hundreds of megabytes down to ~15MB.
 
 ---
 
@@ -105,7 +105,7 @@ golang                   1.22      9f82181bc701   2 weeks ago      302MB
 
 ## 📌 Task 3: Docker Application Deployment (3 Different Stacks)
 
-We deployed 3 distinct application architectures using Docker containerization:
+I deployed 3 distinct application architectures using Docker containerization:
 
 ### 1. Node.js Application Deployment
 - **Base Image:** `node:18-alpine`

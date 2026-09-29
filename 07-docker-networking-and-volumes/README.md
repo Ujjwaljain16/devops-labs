@@ -209,9 +209,9 @@ An **Overlay Network** enables containers running across physically distinct Doc
 
 ---
 
-## 📌 Task 5: Multi-Network Backend — `docker network connect` + `docker inspect` Verification
+## 📌 Task 5: Multi-Network Backend: `docker network connect` + `docker inspect` Verification
 
-Task 1 already put `lab-backend` on `lab-frontend-net` at creation time and connected it to `lab-db-net` right after — but never actually *proved* the multi-network membership with `docker inspect`. Redid the exercise from a clean state specifically to capture that evidence.
+In Task 1, I already put `lab-backend` on `lab-frontend-net` at creation time and connected it to `lab-db-net` right after, but I never actually *proved* the multi-network membership with `docker inspect`. I redid the exercise from a clean state specifically to capture that evidence.
 
 ### 1. Confirm isolation before connecting
 
@@ -228,7 +228,7 @@ PING lab-backend (172.19.0.2): 56 data bytes
 
 ping: bad address 'lab-db'
 ```
-`lab-frontend` → `lab-backend` works (same network, `lab-frontend-net`). `lab-backend` → `lab-db` fails outright — `lab-backend` isn't on `lab-db-net` yet, so there's no DNS entry for `lab-db` to resolve.
+`lab-frontend` → `lab-backend` works (same network, `lab-frontend-net`). `lab-backend` → `lab-db` fails outright: `lab-backend` is not on `lab-db-net` yet, so there is no DNS entry for `lab-db` to resolve.
 
 ### 2. Connect the backend to the second network
 
@@ -236,7 +236,7 @@ ping: bad address 'lab-db'
 docker network connect lab-db-net lab-backend
 ```
 
-### 3. Verify with `docker inspect` — the actual evidence this task is about
+### 3. Verify with `docker inspect`: the actual evidence this task is about
 
 ```bash
 docker inspect lab-backend --format '{{range $net, $conf := .NetworkSettings.Networks}}{{$net}}: {{$conf.IPAddress}}{{println}}{{end}}'
@@ -245,9 +245,9 @@ docker inspect lab-backend --format '{{range $net, $conf := .NetworkSettings.Net
 lab-db-net: 172.21.0.3
 lab-frontend-net: 172.19.0.2
 ```
-Two separate network entries, two separate IPs, one container — `lab-backend` genuinely belongs to both networks simultaneously now, not just "can reach both" through some other trick.
+Two separate network entries, two separate IPs, one container: `lab-backend` genuinely belongs to both networks simultaneously now, not just "can reach both" through some other trick.
 
-### 4. Re-test connectivity now that it's actually connected
+### 4. Re-test connectivity now that it is actually connected
 
 ```bash
 docker exec lab-backend ping -c 2 lab-db
@@ -259,17 +259,17 @@ PING lab-db (172.21.0.2): 56 data bytes
 --- lab-db ping statistics ---
 2 packets transmitted, 2 packets received, 0% packet loss
 ```
-Same command that failed in step 1, now succeeds — the only thing that changed in between is the `docker network connect`, which is exactly the point: **containers gain access to a network only when explicitly attached to it**, isolation isn't something you have to opt out of, it's the default.
+The same command that failed in step 1 now succeeds. The only thing that changed in between is the `docker network connect`, which is exactly the point: **containers gain access to a network only when explicitly attached to it**. Isolation is not something one has to opt out of; it is the default.
 
 ### 📷 Screenshot Verification (`docker inspect` multi-network + volume persistence)
 ![Multi-network inspect and volume persistence](screenshots/03_multinetwork_inspect_and_volume.png)
-This one screenshot covers both Task 5 and Task 6 evidence together — the `docker inspect` output showing both networks, the `lab-db` ping succeeding, and the `my-data` volume persistence check, all run back to back. (Ignore the failed `cd` line at the top and the `compose-demo`/`docker exec` errors near the end — that was a path mistake on my part, a Git-Bash-style path handed to a WSL shell where the D: drive is mounted differently; Task 7 below was re-verified separately with the corrected path.)
+This one screenshot covers both Task 5 and Task 6 evidence together: the `docker inspect` output showing both networks, the `lab-db` ping succeeding, and the `my-data` volume persistence check, all run back to back. The failed `cd` line at the top and the `compose-demo`/`docker exec` errors near the end can be disregarded; that was a path mistake on my part, a Git-Bash-style path handed to a WSL shell where the D: drive is mounted differently. I re-verified Task 7 below separately with the corrected path.
 
 ---
 
 ## 📌 Task 6: Docker-Managed Volumes (vs. Bind Mounts)
 
-Task 3 used a bind mount (host directory → container). This task uses a **Docker-managed named volume** instead — data lives inside Docker's own storage, not a folder you control on the host.
+Task 3 used a bind mount (host directory → container). This task uses a **Docker-managed named volume** instead: the data lives inside Docker's own storage, not a folder I control on the host.
 
 ```bash
 docker volume create my-data
@@ -306,11 +306,11 @@ docker run --rm -v my-data:/data alpine cat /data/persisted.txt
 ```text
 this survives container removal
 ```
-The data was never on the host filesystem in any path I control — it lived in Docker's own volume storage the whole time, and outlived the container that wrote it. That's the core difference from Task 3's bind mount: a bind mount ties a container to *your* directory; a named volume ties data to *Docker*, independent of any specific container or even the exact host path.
+The data was never on the host filesystem in any path I control. It lived in Docker's own volume storage the whole time, and outlived the container that wrote it. That is the core difference from Task 3's bind mount: a bind mount ties a container to *my* directory, while a named volume ties data to *Docker*, independent of any specific container or even the exact host path.
 
 ---
 
-## 📌 Task 7: Docker Compose — Frontend + Backend + DB as One Stack
+## 📌 Task 7: Docker Compose: Frontend + Backend + DB as One Stack
 
 Everything in Tasks 1–6 was individual `docker network`/`docker run`/`docker volume` commands. This task represents the same three-tier shape (frontend / backend / database) as a single `docker-compose.yml`, in [`compose-demo/`](compose-demo/).
 
@@ -358,7 +358,7 @@ volumes:
 ```bash
 docker compose up -d --build
 ```
-Real build output (trimmed) — the backend image actually gets built from scratch, not pulled:
+Real build output (trimmed): the backend image actually gets built from scratch, not pulled:
 ```text
 #7 [1/3] FROM docker.io/library/python:3.12-alpine
 #8 [2/3] WORKDIR /app
@@ -406,7 +406,7 @@ docker exec compose-demo-frontend-1 sh -c "wget -qO- http://backend:5000; nc -zv
 Hello from the compose backend service
 backend (172.23.0.3:5000) open
 ```
-Same DNS-by-container-name idea from Task 5/6 of the transcript, except this time Compose set up the network and the name resolution automatically from the service name in the YAML — never ran a single `docker network create` by hand for this stack.
+This is the same DNS-by-container-name idea from Task 5/6 of the transcript, except this time Compose set up the network and the name resolution automatically from the service name in the YAML. I never ran a single `docker network create` by hand for this stack.
 
 ### Prove the db service actually works
 
@@ -421,11 +421,11 @@ mysql
 performance_schema
 sys
 ```
-`compose_demo` exists automatically — created from the `MYSQL_DATABASE` environment variable in the compose file, no manual `CREATE DATABASE` needed.
+`compose_demo` exists automatically, created from the `MYSQL_DATABASE` environment variable in the compose file; no manual `CREATE DATABASE` was needed.
 
 ### 📷 Screenshot Verification (build → up → verification)
 ![Compose build, up, and verification](screenshots/04_compose_up_and_verification.png)
-Being honest about this one: the `wget`/`mysql` verification commands were run in the same breath as `docker compose up -d --build`, with zero wait in between — so this screenshot actually shows both of them failing for real: `wget: can't connect to remote host (172.23.0.3): Connection refused` and `mysql: ERROR 2002 ... Can't connect to local MySQL server`. That's not a broken setup, it's a genuine startup race — the Python backend and MySQL both need a couple of real seconds after "container started" before they're actually listening, and this hit them mid-boot. Re-ran just those two commands about a minute later, once both services had actually finished starting, and they worked fine:
+To be transparent about this screenshot, I ran the `wget`/`mysql` verification commands in the same breath as `docker compose up -d --build`, with zero wait in between, so this screenshot actually shows both of them failing for real: `wget: can't connect to remote host (172.23.0.3): Connection refused` and `mysql: ERROR 2002 ... Can't connect to local MySQL server`. This is not a broken setup; it is a genuine startup race, since the Python backend and MySQL both need a couple of real seconds after "container started" before they are actually listening, and this hit them mid-boot. I re-ran just those two commands about a minute later, once both services had actually finished starting, and they worked fine:
 ```text
 $ docker exec compose-demo-frontend-1 sh -c "wget -qO- http://backend:5000"
 Hello from the compose backend service
@@ -438,7 +438,7 @@ mysql
 performance_schema
 sys
 ```
-Left the failed screenshot in rather than only showing the clean retry — a real startup race between `docker compose up` finishing and the actual application inside each container being ready is a genuinely common thing to hit in practice, not something to paper over.
+I left the failed screenshot in rather than only showing the clean retry. A real startup race between `docker compose up` finishing and the actual application inside each container being ready is a genuinely common thing to hit in practice, not something to paper over.
 
 ### Tear down, and confirm the volume survives by default
 
@@ -458,10 +458,10 @@ docker volume ls | grep compose-demo
 ```text
 local     compose-demo_db-data
 ```
-`docker compose down` removes containers and networks but **not** named volumes by default — the database's data volume is still sitting there. Same lesson as Task 6, just at the Compose level: you'd need `docker compose down -v` to actually delete it, which is deliberately a separate, more destructive command.
+`docker compose down` removes containers and networks but **not** named volumes by default; the database's data volume is still sitting there. This is the same lesson as Task 6, just at the Compose level: I would need `docker compose down -v` to actually delete it, which is deliberately a separate, more destructive command.
 
 ---
 
 ## What's deliberately not here
 
-**Overlay networks** weren't executed locally, on purpose — an overlay network only makes sense across *multiple* Docker hosts/daemons (e.g. a Swarm or Kubernetes cluster spanning several machines), and this whole lab runs on one Docker Desktop engine on one laptop. Task 4 above already covers the concept and VXLAN mechanics; there's no meaningful "local" overlay demo to run that wouldn't just be faking a single-host network under a different name.
+I did not execute **overlay networks** locally, on purpose. An overlay network only makes sense across *multiple* Docker hosts/daemons (e.g. a Swarm or Kubernetes cluster spanning several machines), and this whole lab runs on one Docker Desktop engine on one laptop. Task 4 above already covers the concept and VXLAN mechanics; there is no meaningful "local" overlay demo to run that would not just be faking a single-host network under a different name.

@@ -4,9 +4,7 @@
 **Roll Number:** 24bcs10173
 **Section:** Section B
 
-See [ques.md](ques.md) for the exact task breakdown. Task 1 (Volumes) is written up separately in [01-kubernetes-volumes/README.md](01-kubernetes-volumes/README.md) since the doc explicitly asked for a dedicated sub-README there; Task 2 (HPA) is below. Task 3 (Mini Project) is blocked — see the note at the bottom.
-
-**Environment note:** same live Minikube cluster (WSL2 Ubuntu, Docker driver) as every other Kubernetes module in this repo. HPA needs the `metrics-server` addon, which was **not** enabled by default — enabled it below as the first step.
+See [ques.md](ques.md) for the exact task breakdown. Task 1 (Volumes) is written up separately in [01-kubernetes-volumes/README.md](01-kubernetes-volumes/README.md), since the doc explicitly asked for a dedicated sub-README there, while Task 2 (HPA) is below. Task 3 (Mini Project) is blocked; see the note at the bottom.
 
 ---
 
@@ -14,7 +12,7 @@ See [ques.md](ques.md) for the exact task breakdown. Task 1 (Volumes) is written
 
 ### Step 0: enable metrics-server
 
-HPA reads CPU utilization from the Metrics API, which nothing serves until `metrics-server` is running. Without it, `kubectl top` and any HPA just sit at `<unknown>` forever.
+HPA reads CPU utilization from the Metrics API, which nothing serves until `metrics-server` is running. The `metrics-server` addon was not enabled on this cluster by default, so I enabled it below as the first step. Without it, `kubectl top` and any HPA just sit at `<unknown>` forever.
 
 ```bash
 minikube addons enable metrics-server
@@ -29,7 +27,7 @@ minikube   209m         5%       1021Mi          26%
 
 ### Step 1: deploy the application
 
-Used `registry.k8s.io/hpa-example` (the standard `php-apache` image from the official Kubernetes HPA walkthrough) — it exposes an endpoint that runs a CPU-burning loop, which makes it easy to generate real load. A `resources.requests.cpu` is set on the container, which is mandatory: HPA's percentage target (`averageUtilization`) is computed against the request, so without one the HPA has nothing to divide by.
+I used `registry.k8s.io/hpa-example` (the standard `php-apache` image from the official Kubernetes HPA walkthrough), since it exposes an endpoint that runs a CPU-burning loop, which makes it easy to generate real load. I set `resources.requests.cpu` on the container, which is mandatory, because HPA's percentage target (`averageUtilization`) is computed against the request, so without one the HPA has nothing to divide by.
 
 ```yaml
 # 02-hpa/deployment.yaml
@@ -109,7 +107,7 @@ kubectl apply -f hpa.yml
 kubectl get hpa hpa-demo-app
 ```
 
-Right after creation the target reads `<unknown>` — metrics-server hasn't completed its first scrape cycle against this specific pod yet:
+Right after creation the target reads `<unknown>`, since metrics-server had not completed its first scrape cycle against this specific pod yet:
 
 ```
 horizontalpodautoscaler.autoscaling/hpa-demo-app created
@@ -117,7 +115,7 @@ NAME           REFERENCE                 TARGETS              MINPODS   MAXPODS 
 hpa-demo-app   Deployment/hpa-demo-app   cpu: <unknown>/50%   1         5         1          21s
 ```
 
-`kubectl describe hpa` confirmed exactly why — `FailedGetResourceMetric: did not receive metrics for targeted pods` — a transient state, not a real error:
+I ran `kubectl describe hpa`, which confirmed exactly why: `FailedGetResourceMetric: did not receive metrics for targeted pods`, a transient state rather than a real error:
 
 ```
 Conditions:
@@ -160,7 +158,7 @@ spec:
 kubectl apply -f load-generator.yaml
 ```
 
-Polled `kubectl get hpa` + `kubectl top pods` every ~25s for about 3.5 minutes to watch it happen live:
+I polled `kubectl get hpa` and `kubectl top pods` every approximately 25 seconds for about 3.5 minutes to watch it happen live:
 
 ```
 === 12:46:07 UTC (check 1/8) ===
@@ -202,11 +200,11 @@ hpa-demo-app   Deployment/hpa-demo-app   cpu: 93%/50%   1   5   5   4m57s
 (5 pods, same as above)
 ```
 
-What actually happened, reading straight off that log: CPU sat at 0% with nothing hitting the app, then climbed to 80% within ~30s of the load generator starting — comfortably over the 50% target, so the HPA scaled to 2 replicas. Load kept climbing (173% against a now-doubled capacity), so it kept scaling, capping out at `maxReplicas: 5` — the 5 pods then settled around 93%, still over target but pinned at the max I configured.
+Reading straight off that log shows what actually happened. CPU sat at 0% with nothing hitting the app, then climbed to 80% within approximately 30 seconds of the load generator starting, comfortably over the 50% target, so the HPA scaled to 2 replicas. Load kept climbing (173% against a now-doubled capacity), so it kept scaling, capping out at `maxReplicas: 5`. The 5 pods then settled around 93%, still over target but pinned at the max I configured.
 
-### Step 8: capture the output — HPA's own event log
+### Step 8: capturing the output from HPA's own event log
 
-`kubectl describe hpa` after it had leveled off, showing the full scaling history in the `Events` section — three real `SuccessfulRescale` events, not just the polling snapshots above:
+I ran `kubectl describe hpa` again after it had leveled off, and it showed the full scaling history in the `Events` section, including three real `SuccessfulRescale` events rather than just the polling snapshots above:
 
 ```bash
 kubectl describe hpa hpa-demo-app
@@ -235,9 +233,9 @@ Events:
   Normal   SuccessfulRescale             111s                   horizontal-pod-autoscaler  New size: 5; reason: cpu resource utilization (percentage of request) above target
 ```
 
-Interesting detail worth calling out: the HPA jumped straight to 4 replicas on its second rescale (not 3) — that's the HPA's own scale-up algorithm being aggressive on purpose (it can roughly double replica count in one step when utilization is far over target, rather than crawling up by one), which is exactly what the 173%/50% ratio above triggered.
+One detail worth calling out is that the HPA jumped straight to 4 replicas on its second rescale rather than 3. This is the HPA's own scale-up algorithm being aggressive on purpose, since it can roughly double the replica count in one step when utilization is far over target rather than crawling up by one, which is exactly what the 173%/50% ratio above triggered.
 
-Cleaned up the load generator afterward so the cluster doesn't keep burning CPU:
+I cleaned up the load generator afterward so the cluster would not keep burning CPU:
 
 ```bash
 kubectl delete pod load-generator
@@ -246,16 +244,16 @@ kubectl delete pod load-generator
 pod "load-generator" deleted
 ```
 
-The HPA will now scale back down toward `minReplicas: 1` on its own once CPU stays under target for the default 5-minute stabilization window — I didn't sit and wait for that since the scale-*up* behavior (the actual ask) is fully captured above.
+The HPA will now scale back down toward `minReplicas: 1` on its own once CPU stays under target for the default 5-minute stabilization window. I did not wait for that, since the scale-*up* behavior, the actual ask, is fully captured above.
 
 ### Screenshots
 
-`kubectl get hpa` + `kubectl get pods` at the settled state — 5/5 Running, HPA holding at 5 replicas:
+`kubectl get hpa` and `kubectl get pods` at the settled state, showing 5/5 Running with the HPA holding at 5 replicas:
 
 ![HPA scaled to 5 replicas, all pods Running](screenshots/01_hpa_scaled_to_5_replicas.png)
 
 ---
 
-## Task 3: Mini Project — blocked
+## Task 3: Mini Project (blocked)
 
-The doc's Session 13 tab says only: *"Complete the mini project provided for Session 13."* There's no attached brief, link, or further detail on that tab. I'm not fabricating a project to fill this gap — if you have the actual mini-project handout (PDF, separate doc, or whatever the instructor shared live), send it over and I'll build it out for real.
+The doc's Session 13 tab says only: *"Complete the mini project provided for Session 13."* There is no attached brief, link, or further detail on that tab. I am not fabricating a project to fill this gap. Once the actual mini-project handout is available (PDF, separate doc, or whatever the instructor shared live), I will build it out for real.

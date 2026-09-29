@@ -1,4 +1,4 @@
-"""A tiny unit-conversion library — the demo app for the CI/CD pipeline."""
+"""A tiny unit-conversion library, the demo app for the CI/CD pipeline."""
 
 
 def celsius_to_fahrenheit(c: float) -> float:

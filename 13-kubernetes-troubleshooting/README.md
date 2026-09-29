@@ -4,17 +4,15 @@
 **Roll Number:** 24bcs10173
 **Section:** Section B
 
-See [ques.md](ques.md) for the exact task breakdown. Task 3 (Mini Project) isn't a separate section below — its deliverable format (Commands / Problem statement / Investigation steps / Root cause / Solution / Before-after output / Screenshots) is applied to every issue in Task 2, since that's exactly what the doc's deliverable list asks for.
-
-**Environment note:** same live Minikube cluster (WSL2 Ubuntu, Docker driver) as every other Kubernetes module in this repo. All manifests are in [manifests/](manifests/), each as a `-broken.yaml` / `-fixed.yaml` pair so the failure and the fix are both on record.
+See [ques.md](ques.md) for the exact task breakdown. Task 3 (Mini Project) is not a separate section below. Its deliverable format (Commands / Problem statement / Investigation steps / Root cause / Solution / Before-after output / Screenshots) is applied to every issue in Task 2, since that is exactly what the doc's deliverable list asks for.
 
 ---
 
 ## Task 1: Kubernetes Commands
 
-Ran all 8 against real, live cluster resources rather than made-up examples.
+I ran all 8 against real, live cluster resources rather than made-up examples.
 
-**`kubectl get` / `kubectl get -o wide`** — every Pod across every namespace, plus IPs/node placement for the default namespace:
+**`kubectl get` / `kubectl get -o wide`:** I listed every Pod across every namespace, plus IPs and node placement for the default namespace:
 ```bash
 kubectl get pods -A
 kubectl get pods -o wide
@@ -34,7 +32,7 @@ demo-app-7f7fbb5c9b-59gxq      1/1     Running   2 (21m ago)   11d   10.244.0.4 
 hpa-demo-app-6f95889dc-gtqzq   1/1     Running   0             12m   10.244.0.15   minikube
 ```
 
-**`kubectl describe`** — full Deployment state including its scaling history (this caught the HPA's live scale-*down* from module 12, happening in the background while I worked on this module):
+**`kubectl describe`:** I pulled the full Deployment state, including its scaling history (this caught the HPA's live scale-*down* from module 12, happening in the background while I worked on this module):
 ```bash
 kubectl describe deployment hpa-demo-app
 ```
@@ -48,7 +46,7 @@ Events:
   Normal  ScalingReplicaSet  2m8s  deployment-controller  Scaled down replica set hpa-demo-app-6f95889dc from 5 to 1
 ```
 
-**`kubectl logs`** — real nginx startup log from a Pod that's been running for 11 days:
+**`kubectl logs`:** I pulled the real nginx startup log from a Pod that had been running for 11 days:
 ```bash
 kubectl logs demo-app-7f7fbb5c9b-59gxq --tail=10
 ```
@@ -58,7 +56,7 @@ kubectl logs demo-app-7f7fbb5c9b-59gxq --tail=10
 2026/09/29 12:37:45 [notice] 1#1: start worker process 31
 ```
 
-**`kubectl exec`** — dropped into `dns-test` to read its actual resolv.conf, proving where CoreDNS's ClusterIP comes from:
+**`kubectl exec`:** I dropped into `dns-test` to read its actual resolv.conf, proving where CoreDNS's ClusterIP comes from:
 ```bash
 kubectl exec dns-test -- sh -c 'hostname; whoami; cat /etc/resolv.conf'
 ```
@@ -70,7 +68,7 @@ nameserver 10.96.0.10
 options ndots:5
 ```
 
-**`kubectl get events`** — cluster-wide event stream, sorted by time (this window happened to catch the HPA scaling a whole batch of Pods down live):
+**`kubectl get events`:** I pulled the cluster-wide event stream, sorted by time (this window happened to catch the HPA scaling a whole batch of Pods down live):
 ```bash
 kubectl get events --sort-by=.lastTimestamp
 ```
@@ -81,7 +79,7 @@ kubectl get events --sort-by=.lastTimestamp
 2m16s   Normal   ScalingReplicaSet   deployment/hpa-demo-app                Scaled down replica set hpa-demo-app-6f95889dc from 5 to 1
 ```
 
-**`kubectl explain`** — schema documentation straight from the API server, not a manual:
+**`kubectl explain`:** I pulled schema documentation straight from the API server, rather than from a manual:
 ```bash
 kubectl explain pod.spec.containers.resources
 ```
@@ -93,7 +91,7 @@ FIELDS:
     Requests describes the minimum amount of compute resources required.
 ```
 
-**`kubectl top`** — live resource usage from metrics-server:
+**`kubectl top`:** I checked live resource usage from metrics-server:
 ```bash
 kubectl top pods
 ```
@@ -107,7 +105,7 @@ hpa-demo-app-6f95889dc-gtqzq   1m           11Mi
 
 ## Task 2 + 3: Troubleshoot Common Issues (with the full report format)
 
-Each issue below was genuinely broken, then genuinely fixed — the `-broken.yaml` was applied and produced the exact failure state shown, then replaced with `-fixed.yaml` and re-verified. Nothing here is a description of what *would* happen; it's what did happen, with real timestamps.
+Each issue below was genuinely broken, then genuinely fixed. I applied the `-broken.yaml` manifest, which produced the exact failure state shown, then replaced it with `-fixed.yaml` and re-verified. Nothing here is a description of what *would* happen; it is what did happen, with real timestamps.
 
 ### 1. CrashLoopBackOff
 
@@ -131,11 +129,11 @@ starting up...
 reading required config file
 cat: can't open '/etc/app/config.env': No such file or directory
 ```
-(Between restarts, `kubectl get pod` alternates showing `Error` (right after a crash) and `CrashLoopBackOff` (during the kubelet's growing backoff delay) — both describe the same loop; the `describe` event's `Back-off restarting failed container` line is the definitive proof.)
+(Between restarts, `kubectl get pod` alternates showing `Error` (right after a crash) and `CrashLoopBackOff` (during the kubelet's growing backoff delay). Both describe the same loop, and the `describe` event's `Back-off restarting failed container` line is the definitive proof.)
 
-**Root cause:** the container's command does `cat /etc/app/config.env`, but nothing mounts that file — it doesn't exist, `cat` fails, the script exits 1, kubelet restarts it, forever.
+**Root cause:** the container's command runs `cat /etc/app/config.env`, but nothing mounts that file. Since it does not exist, `cat` fails, the script exits 1, and kubelet restarts it, forever.
 
-**Solution:** mounted a real ConfigMap at `/etc/app/config.env`, and changed the command to `sleep 3600` after reading it instead of just exiting.
+**Solution:** I mounted a real ConfigMap at `/etc/app/config.env`, and changed the command to `sleep 3600` after reading it instead of just exiting.
 
 **Before/after output:**
 ```bash
@@ -158,7 +156,7 @@ config loaded, staying up
 
 ### 2. ImagePullBackOff / 3. ErrImagePull
 
-**Problem statement:** `imagepull-demo` won't start — one broken image reference genuinely produces both named states, in sequence, which is worth documenting together since that's exactly how Kubernetes actually reports it.
+**Problem statement:** `imagepull-demo` does not start. One broken image reference genuinely produces both named states, in sequence, which is worth documenting together since that is exactly how Kubernetes actually reports it.
 
 **Commands / Investigation:**
 ```bash
@@ -185,9 +183,9 @@ NAME             READY   STATUS             RESTARTS   AGE
 imagepull-demo   0/1     ImagePullBackOff   0          29s
 ```
 
-**Root cause:** `nginx:this-tag-does-not-exist-v99` — that tag was never published; `ErrImagePull` is the immediate pull failure, `ImagePullBackOff` is kubelet's subsequent retry-with-backoff state for the same underlying problem.
+**Root cause:** that tag, `nginx:this-tag-does-not-exist-v99`, was never published. `ErrImagePull` is the immediate pull failure, and `ImagePullBackOff` is kubelet's subsequent retry-with-backoff state for the same underlying problem.
 
-**Solution:** fixed the tag to a real one, `nginx:1.27-alpine`.
+**Solution:** I fixed the tag to a real one, `nginx:1.27-alpine`.
 
 **Before/after output:**
 ```bash
@@ -223,9 +221,9 @@ pending-demo   0/1     Pending   0          8s
 Warning  FailedScheduling  default-scheduler  0/1 nodes are available: 1 Insufficient cpu.
 ```
 
-**Root cause:** the Pod requested `cpu: "32"` — 32 whole cores — against a node with only 4 allocatable. No node in the cluster can ever satisfy that request, so the scheduler leaves it Pending forever (this isn't a transient wait, it's structurally unsatisfiable).
+**Root cause:** the Pod requested `cpu: "32"`, 32 whole cores, against a node with only 4 allocatable. No node in the cluster can ever satisfy that request, so the scheduler leaves it Pending forever. This is not a transient wait; it is structurally unsatisfiable.
 
-**Solution:** dropped the request to a realistic `200m` CPU / `128Mi` memory.
+**Solution:** I dropped the request to a realistic `200m` CPU / `128Mi` memory.
 
 **Before/after output:**
 ```bash
@@ -241,7 +239,7 @@ pending-demo   1/1     Running   0          1s
 
 ### 5. ContainerCreating (stuck)
 
-**Problem statement:** `containercreating-demo` gets scheduled but never becomes Ready — stuck at `0/1 ContainerCreating`.
+**Problem statement:** `containercreating-demo` gets scheduled but never becomes Ready, staying stuck at `0/1 ContainerCreating`.
 
 **Commands / Investigation:**
 ```bash
@@ -256,9 +254,9 @@ containercreating-demo   0/1     ContainerCreating   0          15s
 Warning  FailedMount  kubelet  MountVolume.SetUp failed for volume "missing-config" : configmap "config-that-does-not-exist" not found
 ```
 
-**Root cause:** the Pod mounts a ConfigMap volume (`config-that-does-not-exist`) that was never created. Kubelet can schedule the Pod fine (scheduling doesn't validate volume sources), but it can't actually start the container until every volume mounts successfully — so it sits in `ContainerCreating`, retrying the mount, forever.
+**Root cause:** the Pod mounts a ConfigMap volume (`config-that-does-not-exist`) that was never created. Kubelet can schedule the Pod fine, since scheduling does not validate volume sources, but it cannot actually start the container until every volume mounts successfully. It therefore sits in `ContainerCreating`, retrying the mount, forever.
 
-**Solution:** created the missing ConfigMap.
+**Solution:** I created the missing ConfigMap.
 
 **Before/after output:**
 ```bash
@@ -276,7 +274,7 @@ listen 8080;
 
 ### 6. Service connectivity issues
 
-**Problem statement:** `client-demo` can't reach `web-backend-svc`, even though the `web-backend` Deployment is healthy (2/2 Running).
+**Problem statement:** `client-demo` cannot reach `web-backend-svc`, even though the `web-backend` Deployment is healthy (2/2 Running).
 
 **Commands / Investigation:**
 ```bash
@@ -301,9 +299,9 @@ NAME                           LABELS
 web-backend-6bb9b97c84-lhzrv   app=web-backend,pod-template-hash=6bb9b97c84
 ```
 
-**Root cause:** the Service's selector (`app=web-backend-v2`) doesn't match the actual Pod label (`app=web-backend`) — a one-character-looking typo that means the Service has zero matching Pods, hence zero Endpoints, hence every connection is refused (there's no backend to even reach).
+**Root cause:** the Service's selector (`app=web-backend-v2`) does not match the actual Pod label (`app=web-backend`). This is a one-character-looking typo that means the Service has zero matching Pods, hence zero Endpoints, hence every connection is refused, since there is no backend to even reach.
 
-**Solution:** patched the Service selector to match the real Pod label.
+**Solution:** I patched the Service selector to match the real Pod label.
 
 **Before/after output:**
 ```bash
@@ -339,9 +337,9 @@ command terminated with exit code 1
 command terminated with exit code 1
 ```
 
-**Root cause:** first query has a genuine typo in the Service name (`web-backend-svcc`); second query has the right Service name but the wrong namespace (`staging` instead of `default`) — CoreDNS correctly returns NXDOMAIN for both because neither actually exists.
+**Root cause:** the first query has a genuine typo in the Service name (`web-backend-svcc`), and the second query has the right Service name but the wrong namespace (`staging` instead of `default`). CoreDNS correctly returns NXDOMAIN for both, because neither actually exists.
 
-**Solution:** use the correct name (`web-backend-svc`) in the correct namespace (`default`, either bare or as a full FQDN).
+**Solution:** I used the correct name (`web-backend-svc`) in the correct namespace (`default`, either bare or as a full FQDN).
 
 **Before/after output:**
 ```bash
@@ -372,9 +370,9 @@ wrong-port-svc   10.244.0.25:8080,10.244.0.26:8080   3s
 wget: can't connect to remote host (10.104.142.248): Connection refused
 ```
 
-**Root cause:** this is a genuinely different failure shape from issue 6 — the selector is *correct* this time (real Pod IPs show up as Endpoints), but `targetPort: 8080` doesn't match the container's actual listening port (nginx listens on 80). The Service happily forwards to `<pod-ip>:8080`, where nothing is listening, so every connection gets refused right at the Pod's network namespace.
+**Root cause:** this is a genuinely different failure shape from issue 6. The selector is *correct* this time (real Pod IPs show up as Endpoints), but `targetPort: 8080` does not match the container's actual listening port (nginx listens on 80). The Service happily forwards to `<pod-ip>:8080`, where nothing is listening, so every connection gets refused right at the Pod's network namespace.
 
-**Solution:** corrected `targetPort` to `80`.
+**Solution:** I corrected `targetPort` to `80`.
 
 **Before/after output:**
 ```bash
@@ -393,7 +391,7 @@ wrong-port-svc   10.244.0.25:80,10.244.0.26:80   11s
 
 ### 9. Configuration issues
 
-**Problem statement:** `configerror-demo` fails to start at all — no crash, no image error, a different failure state entirely.
+**Problem statement:** `configerror-demo` fails to start at all, with no crash and no image error: a different failure state entirely.
 
 **Commands / Investigation:**
 ```bash
@@ -408,9 +406,9 @@ configerror-demo   0/1     CreateContainerConfigError   0          8s
 Warning  Failed  kubelet  Error: couldn't find key DATABASE_URL in ConfigMap default/app-settings
 ```
 
-**Root cause:** the Pod's env var references `configMapKeyRef: {name: app-settings, key: DATABASE_URL}`, but the ConfigMap only has a `LOG_LEVEL` key — the referenced key genuinely doesn't exist. Unlike issue 5 (missing ConfigMap entirely -> stuck `ContainerCreating`), this ConfigMap *exists* but is missing one key -> a distinct `CreateContainerConfigError` state, since the container spec itself can't be resolved.
+**Root cause:** the Pod's env var references `configMapKeyRef: {name: app-settings, key: DATABASE_URL}`, but the ConfigMap only has a `LOG_LEVEL` key, so the referenced key genuinely does not exist. Unlike issue 5, where the ConfigMap was missing entirely and produced a stuck `ContainerCreating`, this ConfigMap *exists* but is missing one key, producing a distinct `CreateContainerConfigError` state, since the container spec itself cannot be resolved.
 
-**Solution:** added the missing `DATABASE_URL` key to the ConfigMap.
+**Solution:** I added the missing `DATABASE_URL` key to the ConfigMap.
 
 **Before/after output:**
 ```bash

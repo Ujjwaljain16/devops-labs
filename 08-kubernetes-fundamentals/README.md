@@ -4,45 +4,43 @@
 **Roll Number:** 24bcs10173
 **Section:** Section B
 
-See [ques.md](ques.md) for the exact breakdown of what was required
-
-**Environment note:** I'm on Windows 11, so "installing Minikube on Linux" for me meant doing it inside WSL2 (Ubuntu), with Docker Desktop as the backing engine (WSL integration enabled for the Ubuntu distro so `docker` inside WSL talks to the same Docker Desktop engine). Every command below was actually run in that WSL Ubuntu shell
+The exact breakdown of what was required is documented in [ques.md](ques.md). I ran every command below inside WSL2 (Ubuntu), with Docker Desktop as the backing engine (WSL integration enabled for the Ubuntu distribution, so `docker` inside WSL talks to the same Docker Desktop engine), since on Windows 11 that is what "installing Minikube on Linux" means in practice.
 
 ---
 
 ## Task 1: Kubernetes Architecture
 
-I went through `kubernetes.io/docs/concepts/architecture/` directly rather than relying on secondhand tutorial write-ups, since that's what was emphasized in class. Here's how I'm mapping the official definitions to what was discussed in the lecture.
+I went through `kubernetes.io/docs/concepts/architecture/` directly rather than relying on secondhand tutorial write-ups, since that was what was emphasized in class. Below is how I am mapping the official definitions to what was discussed in the lecture.
 
 ### Control plane components
 
 | Component | Official docs definition | How it was framed in class |
 |---|---|---|
-| **kube-apiserver** | "The API server is a component of the Kubernetes control plane that exposes the Kubernetes API. The API server is the front end for the Kubernetes control plane." | The "front door / security guard" - nothing talks to anything else in the cluster directly, it all routes through here |
-| **etcd** | "Consistent and highly-available key value store used as Kubernetes' backing store for all cluster data." | The database holding cluster state and all the API object info |
-| **kube-scheduler** | "Watches for newly created Pods with no assigned node, and selects a node for them to run on," based on resource requirements, constraints, affinity rules, data locality, deadlines, etc. | Picks which node a new Pod lands on based on available resources |
-| **kube-controller-manager** | Runs controller processes - logically separate controllers, compiled into one binary/process. Includes the Node controller, Job controller, EndpointSlice controller, ServiceAccount controller. | Reconciliation loops - compares desired vs. actual state (ReplicaSet controller, Node controller were the ones called out in class) |
-| **cloud-controller-manager** | Embeds cloud-provider-specific logic (node/route/service controllers), only runs in actual cloud environments. | Mentioned as optional/cloud-only - doesn't apply to a local Minikube setup, which is exactly why it never shows up in `kubectl get pods -A` below |
+| **kube-apiserver** | "The API server is a component of the Kubernetes control plane that exposes the Kubernetes API. The API server is the front end for the Kubernetes control plane." | The "front door and security guard": nothing talks to anything else in the cluster directly, it all routes through here |
+| **etcd** | "Consistent and highly-available key value store used as Kubernetes' backing store for all cluster data." | The database that holds cluster state and all the API object information |
+| **kube-scheduler** | "Watches for newly created Pods with no assigned node, and selects a node for them to run on," based on resource requirements, constraints, affinity rules, data locality, deadlines, etc. | It picks which node a new Pod lands on, based on available resources |
+| **kube-controller-manager** | Runs controller processes, logically separate controllers, compiled into one binary/process. Includes the Node controller, Job controller, EndpointSlice controller, ServiceAccount controller. | Reconciliation loops that compare desired state against actual state (the ReplicaSet controller and Node controller were the ones called out in class) |
+| **cloud-controller-manager** | Embeds cloud-provider-specific logic (node/route/service controllers), only runs in actual cloud environments. | Mentioned as optional and cloud-only; it does not apply to a local Minikube setup, which is exactly why it never shows up in `kubectl get pods -A` below |
 
 ### Worker node components
 
 | Component | Official docs definition | How it was framed in class |
 |---|---|---|
-| **kubelet** | "An agent that runs on each node... makes sure containers are running in Pods," reports status back to the control plane | Watches Pods on the node, sends heartbeat/status to the API server, actually creates/stops Pods as instructed |
+| **kubelet** | "An agent that runs on each node... makes sure containers are running in Pods," reports status back to the control plane | Watches Pods on the node, sends heartbeat and status information to the API server, and actually creates and stops Pods as instructed |
 | **kube-proxy** | Network proxy maintaining Service networking rules; *optional* if a CNI plugin does its own proxying | Handles node-level networking; called "optional but part of the standard setup" in class |
 | **Container runtime (CRI)** | The software that actually runs containers | Kubernetes defaults to containerd; other CRI-compliant runtimes are swappable |
 
 ### The flow that actually matters
 
-The one thing I wanted to make sure I really understood (not just memorized the component list) is this: **the API server is the only thing every other component talks to.** The scheduler doesn't tell the kubelet directly "run this pod here" - it writes that decision back through the API server, which persists it via etcd, and the kubelet on the target node is watching the API server and picks it up from there. Same for controllers: they watch the API server for drift between desired and actual state and issue corrections back through it. Nothing in this architecture talks peer-to-peer.
+The one point I wanted to make sure I genuinely understood, rather than simply memorizing the component list, is that the API server is the only thing every other component talks to. The scheduler does not tell the kubelet directly to run a given pod on a given node. Instead, it writes that decision back through the API server, which persists it via etcd, and the kubelet on the target node watches the API server and picks up the decision from there. The same is true for controllers: they watch the API server for drift between desired and actual state and issue corrections back through it. Nothing in this architecture talks peer-to-peer.
 
-That maps directly onto the `kubectl get pods -A` output further down - every one of those `kube-system` pods (etcd, apiserver, scheduler, controller-manager, kube-proxy, CoreDNS) is a real, individually running process even on a tiny single-node Minikube cluster, which made the "these aren't just abstract diagram boxes" point pretty concrete.
+That maps directly onto the `kubectl get pods -A` output further down. Every one of those `kube-system` pods (etcd, apiserver, scheduler, controller-manager, kube-proxy, CoreDNS) is a real, individually running process, even on a tiny single-node Minikube cluster, which made the point that these are not just abstract diagram boxes fairly concrete.
 
 ---
 
 ## Task 2: Installing Minikube (WSL2 Ubuntu)
 
-Checked what was already on the machine first - Docker Desktop and `kubectl` (v1.34.1, bundled with Docker Desktop) were already there, but Minikube wasn't.
+I checked what was already on the machine first. Docker Desktop and `kubectl` (v1.34.1, bundled with Docker Desktop) were already present, but Minikube was not.
 
 ```bash
 cd ~
@@ -50,7 +48,7 @@ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-
 sudo install minikube-linux-amd64 /usr/local/bin/minikube
 ```
 
-The download itself was ~136MB. Installing to `/usr/local/bin` needed `sudo`, which meant I had to run that one line myself in an interactive terminal (password prompt doesn't work over a scripted shell) - everything else in this doc was run directly.
+The download itself was approximately 136MB. Installing to `/usr/local/bin` required `sudo`, which meant I had to run that one line myself in an interactive terminal, since a password prompt does not work over a scripted shell. Everything else in this document was run directly.
 
 ```text
 $ minikube version
@@ -62,7 +60,7 @@ Client Version: v1.34.1
 Kustomize Version: v5.7.1
 ```
 
-Both binaries confirmed working before moving on.
+I confirmed both binaries were working before moving on.
 
 ---
 
@@ -72,7 +70,7 @@ Both binaries confirmed working before moving on.
 minikube start --driver=docker
 ```
 
-First real output surprise - Minikube warned about memory before it even started pulling images:
+The first real surprise in the output was that Minikube warned about memory before it even started pulling images:
 
 ```text
 * minikube v1.39.0 on Ubuntu 24.04 (kvm/amd64)
@@ -89,7 +87,7 @@ X The requested memory allocation of 3072MiB does not leave room for system over
 ```
 
 
-Once it finished pulling images and provisioning:
+Once it finished pulling images and provisioning, the status command showed:
 
 ```text
 $ minikube status
@@ -101,9 +99,9 @@ apiserver: Running
 kubeconfig: Configured
 ```
 
-Control plane, kubelet, and API server all report `Running` - that's the actual pass/fail signal the instructor pointed to.
+Control plane, kubelet, and API server all report `Running`, which is the actual pass/fail signal the instructor pointed to.
 
-Went a step further and checked the cluster from `kubectl`'s side too, since that's the CLI the instructor uses for inspection:
+I went a step further and checked the cluster from `kubectl`'s side as well, since that is the CLI the instructor uses for inspection:
 
 ```text
 $ kubectl get nodes -o wide
@@ -126,16 +124,16 @@ kube-system   kube-scheduler-minikube            1/1     Running   0          33
 kube-system   storage-provisioner                1/1     Running   0          32s
 ```
 
-Container runtime confirms `containerd`, exactly matching the default mentioned in class. And this is the "concrete proof" moment for Task 1 above - `etcd-minikube`, `kube-apiserver-minikube`, `kube-scheduler-minikube`, and `kube-controller-manager-minikube` are each individually running Pods, not just theoretical boxes on a slide.
+The container runtime confirms `containerd`, exactly matching the default mentioned in class. This is the concrete proof moment for Task 1 above: `etcd-minikube`, `kube-apiserver-minikube`, `kube-scheduler-minikube`, and `kube-controller-manager-minikube` are each individually running Pods, not just theoretical boxes on a slide.
 
 ### Screenshot Verification (Minikube Status & Cluster Check)
 ![Minikube Status and Cluster Verification](screenshots/01_minikube_status_and_cluster_verification.png)
 
 ---
 
-## Task 3.5: `minikube stop` - Cleanly Powering Down the Cluster
+## Task 3.5: `minikube stop`, cleanly powering down the cluster
 
-Missed this the first time through - went back and actually ran it, since "start" without "stop" is only half the lifecycle:
+I missed this the first time through, so I went back and actually ran it, since `minikube start` without `minikube stop` is only half the lifecycle:
 
 ```bash
 minikube stop
@@ -158,13 +156,13 @@ apiserver: Stopped
 kubeconfig: Stopped
 ```
 
-Every component flips to `Stopped`, including `kubeconfig` - `kubectl` genuinely has nothing to talk to at this point (any `kubectl get pods` here would just hang or error, not silently succeed). Brought it back up right after with a plain `minikube start` to keep working on the rest of this module - `minikube stop` doesn't delete anything, it just powers down the container/VM, so everything (Pods, Deployments, the whole cluster state) came back exactly as it was.
+Every component flips to `Stopped`, including `kubeconfig`. At this point `kubectl` genuinely has nothing to talk to (any `kubectl get pods` here would simply hang or error, not silently succeed). I brought it back up right after with a plain `minikube start` to keep working on the rest of this module. `minikube stop` does not delete anything; it just powers down the container or VM, so everything (Pods, Deployments, the whole cluster state) came back exactly as it was.
 
 ---
 
-## Task 4: Hello Minikube - Deploy an Application
+## Task 4: Hello Minikube, deploying an application
 
-To confirm Minikube is functional for real workloads end-to-end beyond just starting the cluster, I walked through the official Hello Minikube deployment flow (`kubernetes.io/docs/tutorials/hello-minikube/`).
+To confirm Minikube is functional for real workloads end-to-end, beyond just starting the cluster, I walked through the official Hello Minikube deployment flow (`kubernetes.io/docs/tutorials/hello-minikube/`).
 
 #### Step 1: Create the deployment
 
@@ -196,7 +194,7 @@ I0917 13:22:36.569935       1 log.go:245] Started UDP server on port  8081
 
 #### Step 3: Expose it and actually hit it with curl
 
-The tutorial uses `--type=LoadBalancer`, but on the Docker driver (Linux/WSL) `LoadBalancer` needs a separate `minikube tunnel` process anyway, so I used `NodePort` directly - same end result, one less moving part:
+The tutorial uses `--type=LoadBalancer`, but on the Docker driver (Linux/WSL) `LoadBalancer` needs a separate `minikube tunnel` process anyway, so I used `NodePort` directly instead. This produces the same end result with one less moving part:
 
 ```text
 $ kubectl expose deployment hello-node --type=NodePort --port=8080
@@ -208,7 +206,7 @@ hello-node   NodePort    10.104.174.54   <none>        8080:30453/TCP   1s
 kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP          87s
 ```
 
-On the Docker driver, the node's own IP (`192.168.49.2`) isn't directly reachable from the WSL host - curling it straight up timed out, which makes sense given Minikube explicitly warns about this ("Because you are using a Docker driver on linux, the terminal needs to be open to run it"). So I ran the actual documented access command and used the local tunnel it opens:
+On the Docker driver, the node's own IP (`192.168.49.2`) is not directly reachable from the WSL host. Curling it directly timed out, which makes sense given that Minikube explicitly warns about this ("Because you are using a Docker driver on linux, the terminal needs to be open to run it"). I therefore ran the documented access command and used the local tunnel that it opens:
 
 ```bash
 minikube service hello-node --url
@@ -225,11 +223,11 @@ Content-Type: text/plain; charset=utf-8
 NOW: 2026-09-17 13:25:06.899386671 +0000 UTC m=+150.883712382
 ```
 
-A real `200 OK` with a live server-generated timestamp - that's about as end-to-end as this verification gets: Minikube installed → cluster started → workload scheduled → container running → networked and reachable from the host.
+A real `200 OK` with a live server-generated timestamp is about as end-to-end as this verification gets: Minikube installed, cluster started, workload scheduled, container running, networked and reachable from the host.
 
 #### Full resource snapshot at the end
 
-Genuinely nice bonus: this output shows a **Pod**, a **ReplicaSet**, and a **Deployment** all in one place - exactly the three objects in this lecture's title, even though writing the YAML for them by hand is next session's work.
+As a genuinely nice bonus, this output shows a **Pod**, a **ReplicaSet**, and a **Deployment** all in one place, exactly the three objects in this lecture's title, even though writing the YAML for them by hand is next session's work.
 
 ```text
 $ kubectl get all -o wide
@@ -247,7 +245,7 @@ NAME                                    DESIRED   CURRENT   READY   AGE     CONT
 replicaset.apps/hello-node-6f8b554fb7   1         1         1       3m19s   agnhost      registry.k8s.io/e2e-test-images/agnhost:2.53
 ```
 
-Worth noting for next session: I didn't write a ReplicaSet or Deployment manifest by hand here - `kubectl create deployment` generated the Deployment, which in turn created the ReplicaSet, which in turn created the Pod. That cascading ownership chain (Deployment owns ReplicaSet owns Pod) is presumably exactly what we'll be doing manually via YAML next.
+It is worth noting for next session that I did not write a ReplicaSet or Deployment manifest by hand here. `kubectl create deployment` generated the Deployment, which in turn created the ReplicaSet, which in turn created the Pod. That cascading ownership chain, in which the Deployment owns the ReplicaSet and the ReplicaSet owns the Pod, is presumably exactly what we will be doing manually via YAML next.
 
 ### Screenshot Verification (Hello Minikube - Live Service Response)
-![Hello Minikube Service Response](screenshots/02_hello_minikube_service_response.png)
+![Hello Minikube Service Response](screenshots/02_hello_minikube_service_response.png)

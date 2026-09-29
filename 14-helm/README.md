@@ -4,9 +4,9 @@
 **Roll Number:** 24bcs10173
 **Section:** Section B
 
-See [ques.md](ques.md) for the exact task breakdown. Task 3 (Mini Project) isn't a separate build — its deliverables (chart, `values.yaml`, templates, install/upgrade/rollback, README) are exactly what Tasks 1 and 2 produce below with the one real chart, `myapp-chart/`.
+The exact task breakdown is documented in [ques.md](ques.md). Task 3 (Mini Project) is not a separate build; its deliverables (chart, `values.yaml`, templates, install/upgrade/rollback, README) are exactly what Tasks 1 and 2 produce below with the one real chart, `myapp-chart/`.
 
-**Environment note:** Helm wasn't installed. Rather than ask for a `sudo` password mid-session, installed it as a user-local binary — no root needed:
+Helm was not installed on my system. Rather than ask for a `sudo` password mid-session, I installed it as a user-local binary, which needed no root access:
 ```bash
 mkdir -p ~/bin
 curl -sSL -o /tmp/helm.tar.gz https://get.helm.sh/helm-v3.16.3-linux-amd64.tar.gz
@@ -25,7 +25,7 @@ v3.16.3+gcfd0749
 
 ### `helm create`
 
-Scaffolded a real chart rather than hand-writing one from scratch — `helm create` gives the standard chart layout (`Chart.yaml`, `values.yaml`, `templates/` with Deployment, Service, ServiceAccount, HPA, Ingress, a NOTES.txt and a helper template):
+I scaffolded a real chart rather than hand-writing one from scratch. `helm create` gives the standard chart layout (`Chart.yaml`, `values.yaml`, `templates/` with Deployment, Service, ServiceAccount, HPA, Ingress, a NOTES.txt and a helper template):
 
 ```bash
 helm create myapp-chart
@@ -34,7 +34,7 @@ helm create myapp-chart
 Creating myapp-chart
 ```
 
-Then customized `values.yaml`: pinned `image.tag` to a real nginx tag (`1.26-alpine`, chart default is a blank tag that falls back to `appVersion: 1.16.0`, which is genuinely old) so upgrades below have something concrete to change.
+I then customized `values.yaml` and pinned `image.tag` to a real nginx tag (`1.26-alpine`; the chart default is a blank tag that falls back to `appVersion: 1.16.0`, which is genuinely old), so the upgrades below would have something concrete to change.
 
 ```bash
 helm lint myapp-chart
@@ -90,7 +90,7 @@ helm get values myapp-release
 USER-SUPPLIED VALUES:
 null
 ```
-(`null` because the install used no `--set`/`-f` overrides — every value came from the chart's own `values.yaml`, so there are no *user-supplied* overrides to show. That's expected Helm behavior, not a bug.)
+(The value is `null` because the install used no `--set`/`-f` overrides. Every value came from the chart's own `values.yaml`, so there are no *user-supplied* overrides to show. This is expected Helm behavior, not a bug.)
 
 ```bash
 helm get manifest myapp-release | head -20
@@ -142,11 +142,11 @@ URL                                        CHART VERSION   APP VERSION   DESCRIP
 https://artifacthub.io/packages/helm/...   5.5.31          7.0.1         Using the official WordPress image...
 https://artifacthub.io/packages/helm/...   34.1.0          7.1.2         WordPress is the world's most popular...
 ```
-(`search repo` only looks in repos you've added locally; `search hub` queries Artifact Hub across every published chart on the internet — different scope, both real results above.)
+(`search repo` only looks in repos I had added locally; `search hub` queries Artifact Hub across every published chart on the internet. These are different scopes, and both results above are real.)
 
 ### `helm uninstall`
 
-Didn't want to tear down the main demo release just to show this command, so installed a second throwaway release from the same chart and removed that instead:
+I did not want to tear down the main demo release just to show this command, so I installed a second throwaway release from the same chart and removed that instead:
 
 ```bash
 helm install throwaway-release myapp-chart
@@ -170,21 +170,21 @@ throwaway-release-myapp-chart-789584cdd8-clcqr   0/1     Terminating
 throwaway-release-myapp-chart-789584cdd8-xs44g   0/1     Terminating
 throwaway-release-myapp-chart-789584cdd8-zn644   0/1     Terminating
 ```
-`myapp-release` is untouched — only `throwaway-release` disappears from `helm list`, and its Pods immediately start `Terminating`.
+`myapp-release` is untouched; only `throwaway-release` disappears from `helm list`, and its Pods immediately start `Terminating`.
 
-`helm history` and `helm upgrade`/`helm rollback` are covered together in Task 2 below, since that's where they're actually exercised as a workflow.
+`helm history` and `helm upgrade`/`helm rollback` are covered together in Task 2 below, since that is where they are actually exercised as a workflow.
 
 ---
 
-## Task 2: Helm Rollback — full workflow
+## Task 2: Helm Rollback (full workflow)
 
 ### Install (revision 1)
 
-Already shown above: `replicaCount: 1`, `image.tag: 1.26-alpine`.
+This was already shown above: `replicaCount: 1`, `image.tag: 1.26-alpine`.
 
 ### Upgrade (revision 2)
 
-Bumped `replicaCount` to `2` in `values.yaml`:
+I bumped `replicaCount` to `2` in `values.yaml`:
 
 ```bash
 helm upgrade myapp-release myapp-chart
@@ -203,11 +203,11 @@ NAME                                          READY   STATUS    AGE
 myapp-release-myapp-chart-5b54b97976-lht4b   1/1     Running   9s
 myapp-release-myapp-chart-5b54b97976-wrnn5   1/1     Running   44s
 ```
-Genuinely 2 Pods now, both from the new ReplicaSet.
+There were genuinely 2 Pods now, both from the new ReplicaSet.
 
 ### Upgrade again (revision 3)
 
-Bumped `replicaCount` to `3` **and** `image.tag` to `1.27-alpine`, so this revision changes two independent things at once:
+I bumped `replicaCount` to `3` **and** `image.tag` to `1.27-alpine`, so this revision changed two independent things at once:
 
 ```bash
 helm upgrade myapp-release myapp-chart
@@ -226,9 +226,9 @@ myapp-release-myapp-chart-7f89bdb7d9-s2dzh   nginx:1.27-alpine
 myapp-release-myapp-chart-7f89bdb7d9-sjkwt   nginx:1.27-alpine
 myapp-release-myapp-chart-7f89bdb7d9-tjl9j   nginx:1.27-alpine
 ```
-3 Pods, all genuinely running the new image tag — proof the upgrade actually rolled out, not just that `helm` reported success.
+There were 3 Pods, all genuinely running the new image tag, which is proof the upgrade actually rolled out and not just that `helm` reported success.
 
-### `helm history` — before rolling back
+### `helm history` (before rolling back)
 
 ```bash
 helm history myapp-release
@@ -269,7 +269,7 @@ REVISION	STATUS    	DESCRIPTION
 4       	deployed  	Rollback to 2
 ```
 
-Back to exactly 2 Pods on `1.26-alpine` — matching revision 2's state. Worth flagging the detail that trips people up: **Helm rollback doesn't rewind the revision counter.** Rolling back to revision 2 didn't reinstate "revision 2" as current — it created a brand-new **revision 4** whose content matches revision 2. `helm history` keeps every revision as an immutable, growing log; rollback is really "redeploy an old revision's content as a new revision," not time travel. That's genuinely useful — it means you can always see *when* a rollback happened and *what* it rolled back to, instead of losing that record.
+This brought the deployment back to exactly 2 Pods on `1.26-alpine`, matching revision 2's state. One detail is worth flagging because it trips people up: **Helm rollback does not rewind the revision counter.** Rolling back to revision 2 did not reinstate "revision 2" as current; it created a brand-new **revision 4** whose content matches revision 2. `helm history` keeps every revision as an immutable, growing log, so rollback is really "redeploy an old revision's content as a new revision," rather than time travel. This is genuinely useful, since it means I can always see *when* a rollback happened and *what* it rolled back to, instead of losing that record.
 
 ---
 
@@ -284,6 +284,6 @@ Back to exactly 2 Pods on `1.26-alpine` — matching revision 2's state. Worth f
 
 ## Screenshots
 
-`helm list`, `helm history myapp-release` (all 4 revisions incl. the rollback), and the final Pod state — 2 Running on `1.26-alpine`, matching revision 4:
+`helm list`, `helm history myapp-release` (all 4 revisions including the rollback), and the final Pod state, with 2 Running on `1.26-alpine`, matching revision 4:
 
 ![Helm history and final Pod state](screenshots/01_helm_history_and_pods.png)

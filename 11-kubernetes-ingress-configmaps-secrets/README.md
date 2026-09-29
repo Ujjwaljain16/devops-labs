@@ -6,10 +6,7 @@
 
 See [ques.md](ques.md) for the exact task list and why this module exists separately from module 09.
 
-**Environment note:** same Minikube cluster (WSL2 Ubuntu, Docker driver) as the other Kubernetes modules. Two things about that setup shaped how I tested the Ingress parts, so flagging them up front:
-
-1. On the Docker driver the node IP (`192.168.49.2`) is not reachable from WSL. I tried it directly against the Ingress controller's NodePort and it just timed out (Task 9 has the output). So all Ingress traffic below goes through `kubectl port-forward` on the controller (`localhost:8080` for HTTP, `localhost:8443` for HTTPS).
-2. Editing `/etc/hosts` needs `sudo` and a password, which I can't type into a scripted shell. Where a hostname mattered I used `curl --resolve host:port:127.0.0.1`, which does exactly the same job for one request without touching the hosts file.
+I ran this module on the same Minikube cluster (WSL2 Ubuntu, Docker driver) as the other Kubernetes modules. Two things about that setup shaped how I tested the Ingress parts, and both are demonstrated with real output in Task 9 below: on the Docker driver, the node IP is not reachable from WSL, so all Ingress traffic goes through `kubectl port-forward` on the controller instead (`localhost:8080` for HTTP, `localhost:8443` for HTTPS); and editing `/etc/hosts` requires `sudo` and a password, which I could not type into a scripted shell, so I ran that one step by hand in an interactive terminal.
 
 ---
 
@@ -72,7 +69,7 @@ production
 $ ...jsonpath='{.data.LOG_LEVEL}'
 INFO
 ```
-All five keys are there and the JSONPath queries pull single values out. Note every value is a string, even `PORT` and `MAX_BOOKING_DAYS` - that's why they're quoted in the YAML; a ConfigMap's `data` only holds strings.
+All five keys are present, and the JSONPath queries pull single values out successfully. I noted that every value is a string, even `PORT` and `MAX_BOOKING_DAYS`, which is why they are quoted in the YAML; a ConfigMap's `data` field only holds strings.
 
 ## Task 2: Live-updating a ConfigMap - and why running Pods ignore it
 
@@ -103,11 +100,11 @@ deployment "yatri-backend" successfully rolled out
 --- new pods say: ---
 ENVIRONMENT=staging
 ```
-The ConfigMap object says `staging` immediately, but the Pod that was already running still says `production`. Environment variables are baked into a container's process at start, so nothing changes until the container is recreated - `rollout restart` does that gradually (new Pods up before old ones go), so there's no downtime. Reverted the patch back to `production` and restarted once more so the later tasks start from the same known state.
+The ConfigMap object says `staging` immediately, but the Pod that was already running still says `production`. Environment variables are baked into a container's process at startup, so nothing changes until the container is recreated. A `rollout restart` does this gradually, bringing new Pods up before old ones terminate, so there is no downtime. I reverted the patch back to `production` and restarted the deployment once more so that the later tasks would start from the same known state.
 
 ### Screenshot Verification (patch -> still `production` -> restart -> `staging`)
 ![ConfigMap live update and rollout restart](screenshots/05_configmap_live_update_and_cleanup.png)
-This is a second run of the same drill for the screenshot pass: patch, `ENVIRONMENT=production` still showing in the running Pod, the rolling restart, then `ENVIRONMENT=staging` in the new Pod. The `cleanup.sh` output underneath belongs to Task 14 - the stack was torn down straight after this drill, and the leftover `Terminating` Pods in its "anything left?" list are just the old replicas still shutting down (the Deployments and Ingress themselves are already gone).
+This is a second run of the same drill, captured for the screenshot: the patch, `ENVIRONMENT=production` still showing in the running Pod, the rolling restart, and then `ENVIRONMENT=staging` in the new Pod. The `cleanup.sh` output underneath belongs to Task 14; I tore the stack down immediately after this drill, and the leftover `Terminating` Pods in its "anything left?" list are simply the old replicas still shutting down, since the Deployments and Ingress themselves were already gone.
 
 ## Task 3: Secret - and why base64 is not security
 
@@ -145,7 +142,7 @@ secretpassword
 $ ...POSTGRES_USER | base64 --decode
 yatri_admin
 ```
-`describe` politely hides the values and just prints byte lengths - which looks like protection, but one JSONPath and one `base64 --decode` later the password is sitting there in plain text. Base64 is an *encoding* (so binary data fits in YAML), not encryption. Anyone who can `kubectl get secret` can read it, which is why RBAC on Secrets matters far more than the encoding.
+`describe` hides the values and prints only byte lengths, which looks like protection, but one JSONPath query and one `base64 --decode` later, the password is sitting there in plain text. Base64 is an *encoding*, used so that binary data fits inside YAML, not an encryption method. Anyone who can run `kubectl get secret` can read it, which is why RBAC on Secrets matters far more than the encoding itself.
 
 ### Screenshot Verification (ConfigMap + Secret, Tasks 1 and 3)
 ![ConfigMap and Secret](screenshots/02_configmap_and_secret.png)
@@ -174,7 +171,7 @@ Right (no newline):   c2VjcmV0cGFzc3dvcmQ=
 --- decoding the wrong one shows the stray byte ---
 00000000: 7365 6372 6574 7061 7373 776f 7264 0a    secretpassword.
 ```
-Plain `echo` silently appends a newline byte (`0a`, the last byte in the first dump). It's invisible on screen, but base64 encodes it faithfully, so the stored password becomes `secretpassword\n` - 15 bytes instead of 14. A database comparing that to what the user typed would reject a login that "looks" correct, and it's miserable to debug because the value prints identically. `echo -n` (or `printf`) avoids it. The Secret in Task 3 was encoded with `echo -n`, which is why `describe` there says exactly 14 bytes.
+Plain `echo` silently appends a newline byte (`0a`, the last byte in the first dump). This is invisible on screen, but base64 encodes it faithfully, so the stored password becomes `secretpassword\n`, 15 bytes instead of 14. A database comparing that value to what the user typed would reject a login that appears correct, and it is difficult to debug because the value prints identically either way. Using `echo -n` (or `printf`) avoids this problem. I encoded the Secret in Task 3 with `echo -n`, which is why `describe` reports exactly 14 bytes there.
 
 ### Screenshot Verification (trailing-newline gotcha)
 ![xxd and base64 with and without the trailing newline](screenshots/03_trailing_newline_gotcha.png)
@@ -182,16 +179,16 @@ The highlighted `0a` at the end of the first hex dump is the invisible newline; 
 
 ## Task 5: Enterprise secret management (writeup)
 
-Checked whether this cluster has any secret-management operator installed:
+I checked whether this cluster has any secret-management operator installed:
 ```bash
 kubectl get crds | grep -i secret || echo "Standard native secrets in use"
 ```
 ```text
 Standard native secrets in use (no External Secrets / Vault CRDs installed)
 ```
-Just native Secrets, as expected on a lab cluster. In a real company that's not enough, for a few reasons:
+Only native Secrets are in use, as expected on a lab cluster. In a real company, that is not enough, for a few reasons:
 
-- **Git remembers everything.** A base64 Secret committed to a repo lives in history forever, even after the file is deleted. Base64 isn't protection, so anyone with repo read access has the password - and rotating it means rewriting history everywhere it was cloned.
+- **Git remembers everything.** A base64 Secret committed to a repo lives in its history forever, even after the file is deleted. Base64 is not protection, so anyone with repo read access has the password, and rotating it means rewriting history everywhere the repository was cloned.
 - **No rotation or audit trail.** A static YAML has no notion of expiry, and nothing records who read it.
 - **One value, many copies.** The same DB password ends up pasted into dev/staging/prod manifests and drifts apart.
 
@@ -214,7 +211,7 @@ Pod  (env var or mounted file)
 
 ## Task 6: ConfigMap + Secret injected into one Pod
 
-The backend (`04-full-demo/backend.yaml`) is a tiny Python API that reports what it was given. The two injection styles side by side:
+The backend (`04-full-demo/backend.yaml`) is a tiny Python API that reports what it was given. The two injection styles appear side by side below:
 
 ```yaml
           envFrom:                       # whole ConfigMap -> every key becomes an env var
@@ -250,10 +247,10 @@ PORT=8080
 POSTGRES_PASSWORD=secretpassword
 POSTGRES_USER=yatri_admin
 ```
-Both sources merge into one environment. (`configmap/yatri-app-config unchanged` is because it's the same ConfigMap from Task 1 - applying an identical manifest is a no-op.) Two takeaways from that output:
+Both sources merge into one environment. The line `configmap/yatri-app-config unchanged` appears because it is the same ConfigMap from Task 1, and applying an identical manifest is a no-op. Two takeaways follow from that output:
 
-- `envFrom` is convenient but takes *everything*; the Secret is injected key by key so the container only receives what it needs.
-- `POSTGRES_PASSWORD=secretpassword` is right there in plain text for anyone who can `kubectl exec` into the Pod. Secrets protect the value *at rest and in manifests*, not from someone with exec access - another reason to lock down RBAC. My API deliberately reports the password only as `set (hidden)`:
+- `envFrom` is convenient but takes *everything*; the Secret is injected key by key so the container receives only what it needs.
+- `POSTGRES_PASSWORD=secretpassword` is right there in plain text for anyone who can `kubectl exec` into the Pod. Secrets protect the value *at rest and in manifests*, not from someone with exec access, which is another reason to lock down RBAC. My API deliberately reports the password only as `set (hidden)`:
 ```text
 $ kubectl exec dns-test -- wget -qO- http://yatri-backend-svc:8080/
 Yatri backend API
@@ -274,7 +271,7 @@ POSTGRES_PASSWORD: set (hidden)
 | | **Ingress (resource)** | **Ingress Controller** |
 |---|---|---|
 | What it is | A Kubernetes API object: a written set of Layer-7 routing rules (hosts, paths, TLS secret, target Service) | A running Pod - a reverse proxy (NGINX, Traefik, HAProxy, Envoy) |
-| Does it do anything alone? | **No.** It's only a blueprint stored in etcd | **Yes** - it's the thing that actually receives and forwards traffic |
+| Does it do anything alone? | **No.** It is only a blueprint stored in etcd | **Yes.** It is the thing that actually receives and forwards traffic |
 | How they connect | The controller watches the API server for Ingress objects | ...and turns each one into real proxy config, then reloads |
 | Analogy | The seating plan | The host who actually seats people |
 
@@ -285,7 +282,7 @@ NAME             SHORTNAMES   APIVERSION             NAMESPACED   KIND
 ingressclasses                networking.k8s.io/v1   false        IngressClass
 ingresses        ing          networking.k8s.io/v1   true         Ingress
 ```
-That API was available on a cluster with **no** controller at all - I could have applied Ingress objects and nothing would have happened. That's exactly the state this cluster was in until Task 8. I saw the controller's watch-and-reconcile behaviour for real in Task 12: it rejected a conflicting Ingress through its admission webhook.
+That API was available on a cluster with **no** controller at all; I could have applied Ingress objects and nothing would have happened. That was exactly the state of this cluster until Task 8. I saw the controller's watch-and-reconcile behavior for real in Task 12, where it rejected a conflicting Ingress through its admission webhook.
 
 ## Task 8: Enabling the NGINX Ingress Controller
 
@@ -314,11 +311,11 @@ NAME                                 TYPE        CLUSTER-IP      EXTERNAL-IP   P
 ingress-nginx-controller             NodePort    10.111.89.182   <none>        80:30647/TCP,443:31704/TCP   57s
 ingress-nginx-controller-admission   ClusterIP   10.110.36.2     <none>        443/TCP                      57s
 ```
-The controller Pod is `1/1 Running`. The two `Completed` Pods are one-shot Jobs that generate the certificate for the admission webhook (the `patch` one retried twice before succeeding, which is normal while the API server settles). The controller Service is a `NodePort` - Minikube has no cloud load balancer to hand out an external IP.
+The controller Pod is `1/1 Running`. The two `Completed` Pods are one-shot Jobs that generate the certificate for the admission webhook (the `patch` one retried twice before succeeding, which is normal while the API server settles). The controller Service is a `NodePort`, since Minikube has no cloud load balancer available to hand out an external IP.
 
 ## Task 9: Getting a hostname to reach the cluster
 
-The task says to map `yatri.local` to `minikube ip` in `/etc/hosts`. Trying that first:
+The task instructions say to map `yatri.local` to `minikube ip` in `/etc/hosts`. I tried that first:
 
 ```text
 $ minikube ip
@@ -326,15 +323,15 @@ $ minikube ip
 $ curl -m 4 http://192.168.49.2:30647/
 curl: (28) Connection timed out after 4001 milliseconds
 ```
-That's the Docker-driver limitation: `192.168.49.2` lives on an internal Docker bridge that the WSL shell can't route to. So mapping the hostname to `minikube ip` would just give a hostname that times out. The workable route is a port-forward to the controller:
+This is the Docker-driver limitation: `192.168.49.2` lives on an internal Docker bridge that the WSL shell cannot route to. Mapping the hostname to `minikube ip` would therefore just give a hostname that times out. The workable route is a port-forward to the controller:
 ```bash
 kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8080:80 8443:443
 ```
-and the hostnames map to `127.0.0.1` instead. The `/etc/hosts` line for that:
+and the hostnames map to `127.0.0.1` instead. The `/etc/hosts` line for that is:
 ```bash
 echo "127.0.0.1  yatri.local portal.campus.local api.campus.local" | sudo tee -a /etc/hosts
 ```
-This needs `sudo` (so a password prompt), which is why I ran it by hand in an interactive terminal rather than through the scripted shell I'd used for everything else:
+This requires `sudo`, and therefore a password prompt, which is why I ran it by hand in an interactive terminal rather than through the scripted shell I had used for everything else:
 ```text
 $ echo "127.0.0.1  yatri.local portal.campus.local api.campus.local" | sudo tee -a /etc/hosts
 [sudo] password for ujjwal:
@@ -344,7 +341,7 @@ $ grep -E "yatri|campus" /etc/hosts
 $ curl -s http://portal.campus.local:8080/ -o /dev/null -w "%{http_code}\n"
 308
 ```
-The `grep` finds exactly one entry (no duplicate from an earlier run), and the bare hostname now resolves without any `--resolve` flag. The `308` is the controller redirecting HTTP to HTTPS - correct, because by this point the campus Ingress has TLS configured (Task 13). Everything from here on could use plain hostnames; I kept `--resolve` in my own transcripts because they were run before this line existed, and it gives identical results.
+The `grep` output finds exactly one entry, confirming there is no duplicate from an earlier run, and the bare hostname now resolves without any `--resolve` flag. The `308` is the controller redirecting HTTP to HTTPS, which is correct, because by this point the campus Ingress has TLS configured (Task 13). Everything from here on could use plain hostnames; I kept `--resolve` in my own transcripts because they were run before this line existed, and it produces identical results.
 
 ### Screenshot Verification (`/etc/hosts` mapping)
 ![Hosts file mapping and resolution](screenshots/01_hosts_mapping.png)
@@ -372,7 +369,7 @@ spec:
             pathType: ImplementationSpecific
             backend: { service: { name: yatri-frontend-svc, port: { number: 80 } } }
 ```
-`rewrite-target: /$2` rewrites the URL using the *second* capture group of the path regex. In `/api(/|$)(.*)` that's whatever follows `/api/`, so `/api/orders/42` reaches the backend as `/orders/42`. One subtlety I had to think about: the annotation applies to **every** path in the Ingress, including `/`. A plain `/` rule has no capture groups, so `$2` would be empty and every frontend request would be rewritten to just `/`. Writing the frontend path as `/()(.*)` gives it two (empty first, everything second) so the same rewrite passes URLs through unchanged.
+`rewrite-target: /$2` rewrites the URL using the *second* capture group of the path regex. In `/api(/|$)(.*)`, that is whatever follows `/api/`, so `/api/orders/42` reaches the backend as `/orders/42`. One subtlety I had to consider was that the annotation applies to **every** path in the Ingress, including `/`. A plain `/` rule has no capture groups, so `$2` would be empty and every frontend request would be rewritten to just `/`. Writing the frontend path as `/()(.*)` gives it two capture groups, an empty first group and everything in the second, so the same rewrite passes URLs through unchanged.
 
 ```text
 $ kubectl get ingress yatri-ingress
@@ -385,7 +382,7 @@ Rules:
                /api(/|$)(.*)   yatri-backend-svc:8080 (10.244.0.11:8080,10.244.0.12:8080)
                /()(.*)         yatri-frontend-svc:80 (10.244.0.16:80,10.244.0.17:80)
 ```
-(`ADDRESS` is empty for the first several seconds after creation. A few minutes later it fills in with `192.168.49.2` - the Minikube node IP, visible in the Task 13 screenshot - which is the same Docker-bridge address that timed out in Task 9, so an `ADDRESS` being present doesn't mean it's reachable from the host.) Then the actual requests:
+(`ADDRESS` is empty for the first several seconds after creation. A few minutes later it fills in with `192.168.49.2`, the Minikube node IP visible in the Task 13 screenshot, which is the same Docker-bridge address that timed out in Task 9. An `ADDRESS` being present therefore does not mean the Ingress is reachable from the host.) The actual requests follow:
 
 ```text
 --- GET / (frontend) ---
@@ -410,11 +407,11 @@ http_code=200
 --- request with no matching Host ---
 http_code=404
 ```
-The `path: /orders/42` line is the proof the rewrite works: the client asked for `/api/orders/42` and the backend saw `/orders/42`. And a request with the wrong `Host` gets the controller's own 404 - the Ingress only answers for the hostname in its rules.
+The `path: /orders/42` line is proof that the rewrite works: the client asked for `/api/orders/42`, and the backend saw `/orders/42`. A request with the wrong `Host` receives the controller's own 404, since the Ingress only answers for the hostname declared in its rules.
 
 ## Task 11: Host-based routing (virtual hosts)
 
-Two tiny nginx apps (`03-ingress/campus-apps.yaml`), one per hostname, behind one Ingress (`03-ingress/ingress-host.yaml`) - same IP, same port, routing decided by the `Host` header only:
+Two tiny nginx apps (`03-ingress/campus-apps.yaml`), one per hostname, sit behind one Ingress (`03-ingress/ingress-host.yaml`). They share the same IP and the same port, with routing decided by the `Host` header alone:
 
 ```text
 --- portal.campus.local ---
@@ -441,7 +438,7 @@ Error from server (BadRequest): admission webhook "validate.nginx.ingress.kubern
 denied the request: host "portal.campus.local" and path "/" is already defined in
 ingress default/campus-ingress-host
 ```
-That's the controller's admission webhook protecting against two Ingresses fighting over the same host+path (which would make routing ambiguous). It's also a nice live demonstration of Task 7 - the controller isn't just passively reading Ingress objects, it's actively validating them. Deleted the host-only Ingress, then applied the hybrid one:
+This is the controller's admission webhook protecting against two Ingresses fighting over the same host and path, which would make routing ambiguous. It is also a useful live demonstration of Task 7: the controller is not merely passively reading Ingress objects, it is actively validating them. I deleted the host-only Ingress, then applied the hybrid one:
 
 ```text
 $ kubectl describe ingress campus-ingress-tls
@@ -455,7 +452,7 @@ Rules:
   api.campus.local
                        /api      campus-api-svc:80 (10.244.0.19:80)
 ```
-The host picks the *site*, and within `portal.campus.local` the path picks the *Service* (`/status` is deliberately sent to the API app). Verifying that each combination really goes where the table says:
+The host picks the *site*, and within `portal.campus.local` the path picks the *Service* (`/status` is deliberately sent to the API application). I verified that each combination genuinely goes where the table says:
 
 ```text
 portal /        -> CAMPUS PORTAL
@@ -463,7 +460,7 @@ portal /status  -> CAMPUS API
 api    /api     -> CAMPUS API
 api    /        -> http_code=404
 ```
-The last line matters as much as the others: `api.campus.local` has no rule for `/`, so it's a 404, not a fall-through to the portal. Hosts stay isolated.
+The last line matters as much as the others: `api.campus.local` has no rule for `/`, so the result is a 404 rather than a fall-through to the portal. Hosts remain isolated from one another.
 
 ## Task 13: TLS termination
 
@@ -486,9 +483,9 @@ secret/campus-tls-cert created
 NAME              TYPE                DATA   AGE
 campus-tls-cert   kubernetes.io/tls   2      0s
 ```
-(Two notes: I added the `subjectAltName` on top of the plain `-subj` from the task - modern clients ignore the CN and check the SAN list, so without it a strict client would reject the hostnames even with `-k` off. And the key/cert live in `/tmp`, not this repo - a private key doesn't belong in Git, which is Task 5's whole point.)
+(Two notes: I added the `subjectAltName` on top of the plain `-subj` from the task instructions, since modern clients ignore the CN and check the SAN list, so without it a strict client would reject the hostnames even with `-k` disabled. The key and certificate live in `/tmp`, not in this repository, since a private key does not belong in Git, which is the whole point of Task 5.)
 
-The Ingress references it through `spec.tls` (already in `ingress-tls.yaml`): `secretName: campus-tls-cert` for both hosts. Testing HTTPS over the forwarded 443:
+The Ingress references it through `spec.tls`, already present in `ingress-tls.yaml`, with `secretName: campus-tls-cert` for both hosts. I tested HTTPS over the forwarded port 443:
 
 ```bash
 curl -skv --resolve portal.campus.local:8443:127.0.0.1 https://portal.campus.local:8443/
@@ -500,7 +497,7 @@ curl -skv --resolve portal.campus.local:8443:127.0.0.1 https://portal.campus.loc
 *  issuer: CN=campus.local; O=CampusDevOps
 * using HTTP/2
 ```
-That subject/issuer is *my* certificate, not the controller's built-in default one, so the Secret binding really worked. `subject == issuer` is what "self-signed" looks like, which is also why `curl -k` is needed - no CA vouches for it. And with TLS configured, plain HTTP is redirected automatically:
+That subject and issuer belong to *my* certificate, not the controller's built-in default one, confirming that the Secret binding genuinely worked. `subject == issuer` is what a self-signed certificate looks like, which is also why `curl -k` is needed, since no CA vouches for it. With TLS configured, plain HTTP is redirected automatically:
 ```text
 $ curl -I http://portal.campus.local:8080/
 HTTP/1.1 308 Permanent Redirect
@@ -514,7 +511,7 @@ One screenshot covering Tasks 8, 12 and 13: the controller Pod `1/1 Running` (pl
 
 ## Task 14: End-to-end automation
 
-`04-full-demo/` holds the whole Yatri stack. `backend.yaml` and `frontend.yaml` are **multi-document YAML** - a Deployment and a Service in one file, separated by `---`, so one `kubectl apply -f` creates both (the backend file also carries the ConfigMap holding its Python code, so three objects). `run-demo.sh` applies everything in order, waits for rollouts, then applies the Ingress last, once its backends exist:
+`04-full-demo/` holds the whole Yatri stack. `backend.yaml` and `frontend.yaml` are **multi-document YAML**: a Deployment and a Service in one file, separated by `---`, so one `kubectl apply -f` creates both (the backend file also carries the ConfigMap holding its Python code, so three objects in total). `run-demo.sh` applies everything in order, waits for the rollouts, then applies the Ingress last, once its backends exist:
 
 ```text
 $ bash run-demo.sh
@@ -553,11 +550,11 @@ NAME                         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S) 
 service/yatri-backend-svc    ClusterIP   10.96.225.87     <none>        8080/TCP   2s
 service/yatri-frontend-svc   ClusterIP   10.106.245.160   <none>        80/TCP     1s
 ```
-That last block is the single-command audit: because every object carries the label `app: yatri-app`, one `kubectl get configmap,secret,ingress,deploy,svc,pods -l app=yatri-app` shows the whole application at once. (The Pod list in the real output also showed two old backend Pods still `Terminating` from the previous run - I'd just torn the stack down a moment earlier - trimmed here for readability.) After it finished, the stack served real traffic through the Ingress (`Welcome to nginx!` on `/`, the backend report on `/api/`).
+That last block is the single-command audit: because every object carries the label `app: yatri-app`, one `kubectl get configmap,secret,ingress,deploy,svc,pods -l app=yatri-app` shows the whole application at once. (The Pod list in the real output also showed two old backend Pods still `Terminating` from the previous run, since I had just torn the stack down a moment earlier; this was trimmed here for readability.) After it finished, the stack served real traffic through the Ingress, returning `Welcome to nginx!` on `/` and the backend report on `/api/`.
 
 ### Screenshot Verification (`run-demo.sh`) - and a timing gotcha it caught
 ![run-demo.sh full stack](screenshots/04_run_demo_full_stack.png)
-This screenshot is worth reading closely, because the two `curl` commands typed straight after `run-demo.sh` returned **`404 Not Found`** instead of the frontend title and the API response. The Ingress was only 1 second old (the `AGE` column shows it), and the controller needs a moment to notice a new Ingress and reload its NGINX config - until then it has no route for `yatri.local` and answers with its default 404. I reproduced it on purpose to be sure it wasn't a real routing bug:
+This screenshot is worth reading closely, because the two `curl` commands typed immediately after `run-demo.sh` returned **`404 Not Found`** instead of the frontend title and the API response. The Ingress was only one second old, as the `AGE` column shows, and the controller needs a moment to notice a new Ingress and reload its NGINX configuration; until then it has no route for `yatri.local` and answers with its default 404. I reproduced this on purpose to confirm it was not a real routing bug:
 ```text
 === immediately after run-demo.sh ===
 GET /               -> 404
@@ -569,7 +566,7 @@ GET /api/orders/42  -> 200
 GET /               -> 200
 GET /api/orders/42  -> 200
 ```
-404 straight away, 200 within three seconds, every time. Same family of gotcha as the Compose startup race in module 07: "the object exists" and "traffic is actually being served" are not the same moment. (The `ENVIRONMENT`/`POSTGRES_*` lines at the bottom of the screenshot are the Secret and ConfigMap values, still showing correctly in the running backend.) Then `cleanup.sh`:
+The result was a 404 straight away and a 200 within three seconds, every time. This is the same family of gotcha as the Compose startup race in module 07: "the object exists" and "traffic is actually being served" are not the same moment. (The `ENVIRONMENT`/`POSTGRES_*` lines at the bottom of the screenshot are the Secret and ConfigMap values, still showing correctly in the running backend.) I then ran `cleanup.sh`:
 
 ```text
 $ bash cleanup.sh
@@ -588,16 +585,16 @@ Error from server (NotFound): deployments.apps "yatri-backend" not found
 Error from server (NotFound): deployments.apps "yatri-frontend" not found
 Deployments deleted
 ```
-The `NotFound` errors are the *good* outcome here - they're the verification step confirming the objects no longer exist.
+The `NotFound` errors are the *good* outcome here; they are the verification step confirming the objects no longer exist.
 
 ---
 
 ## Interview-style takeaways
 
-- **Why didn't the Pod see the patched ConfigMap?** Env vars are fixed when the container process starts. Only a restart (`rollout restart`) re-reads them. (Files from a ConfigMap *volume* do eventually refresh in place, but env vars never do.)
-- **Is base64 in a Secret encryption?** No, it's encoding. `base64 --decode` reverses it instantly. Real protection comes from RBAC, encryption at rest in etcd, and keeping the source of truth in an external secret store.
+- **Why did the Pod not see the patched ConfigMap?** Environment variables are fixed when the container process starts. Only a restart (`rollout restart`) re-reads them. (Files from a ConfigMap *volume* do eventually refresh in place, but environment variables never do.)
+- **Is base64 in a Secret encryption?** No, it is encoding. `base64 --decode` reverses it instantly. Real protection comes from RBAC, encryption at rest in etcd, and keeping the source of truth in an external secret store.
 - **Why does `echo` vs `echo -n` matter?** `echo` appends `\n`; base64 encodes it faithfully; the app then compares a password with a hidden newline and rejects the correct one.
 - **Ingress vs Ingress Controller?** The Ingress is only rules stored in etcd; the controller is the proxy that reads them and moves traffic. Without a controller, an Ingress does nothing.
 - **Why did `rewrite-target` need `/()(.*)` on the frontend path?** The annotation applies to every path in that Ingress. A path without capture groups would make `$2` empty and collapse every URL to `/`.
 - **Why can the Ingress serve many hostnames on one IP?** Routing is decided by the `Host` header (and TLS SNI for HTTPS), not by IP or port.
-- **Why couldn't I just use `minikube ip`?** On the Docker driver the node lives on an internal bridge network that the host can't route to, so access has to go through a forwarded port (or `minikube tunnel`).
+- **Why could I not just use `minikube ip`?** On the Docker driver, the node lives on an internal bridge network that the host cannot route to, so access has to go through a forwarded port (or `minikube tunnel`).
