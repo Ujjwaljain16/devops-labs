@@ -1,0 +1,79 @@
+name: Converter CI/CD
+
+on:
+  push:
+    paths:
+      - '15-cicd-github-actions/**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: 15-cicd-github-actions
+
+jobs:
+  test:
+    name: Test Application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pytest
+        run: pytest -v
+
+  security-check:
+    name: Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for sensitive files
+        run: |
+          echo "Scanning for common sensitive file patterns..."
+          if find . -name '*.env' -o -name '*.pem' -o -name '*.key' | grep -q .; then
+            echo "Sensitive file pattern found:"
+            find . -name '*.env' -o -name '*.pem' -o -name '*.key'
+            exit 1
+          fi
+          echo "No sensitive files found."
+
+      - name: Show demo secret is masked
+        env:
+          DEMO_SECRET: ${{ secrets.DEMO_SECRET }}
+        run: |
+          echo "The secret value itself (GitHub auto-masks it in logs):"
+          echo "$DEMO_SECRET"
+          echo "Length check without exposing it: ${#DEMO_SECRET} characters"
+
+  build:
+    name: Build Application
+    needs: [test, security-check]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build artifact
+        run: |
+          mkdir -p build
+          cp app/converter.py build/converter.py
+          echo "Built from commit: $GITHUB_SHA" > build/build-info.txt
+          echo "Built at: $(date -u)" >> build/build-info.txt
+
+      - name: Build Docker image
+        run: docker build -t converter-app:${{ github.sha }} .
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: converter-build
+          path: 15-cicd-github-actions/build/
