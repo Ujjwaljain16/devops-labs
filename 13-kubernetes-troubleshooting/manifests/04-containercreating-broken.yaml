@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: containercreating-demo
+  labels:
+    demo: containercreating
+spec:
+  containers:
+    - name: app
+      image: nginx:1.27-alpine
+      volumeMounts:
+        - name: missing-config
+          mountPath: /etc/app-config
+  volumes:
+    - name: missing-config
+      configMap:
+        name: config-that-does-not-exist
