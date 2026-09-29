@@ -1,0 +1,22 @@
+serverFiles:
+  alerting_rules.yml:
+    groups:
+      - name: node-health
+        rules:
+          - alert: HighNodeMemoryUsage
+            expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 20
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Node memory available is below 20%"
+              description: "Less than 20% memory available on {{ $labels.node }}"
+
+          - alert: NodeExporterDown
+            expr: absent(up{job="kubernetes-service-endpoints", service="prometheus-prometheus-node-exporter"} == 1)
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "node-exporter target is missing"
+              description: "No healthy node-exporter target found - either it's down or its Service has no Endpoints"

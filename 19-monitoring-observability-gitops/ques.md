@@ -38,7 +38,8 @@ Unlike modules 15/16, this push doesn't trigger any CI workflow (no path matches
 
 ## 6. My completion checklist
 
-- [ ] Task 1: Metrics, Logs, Alerts, CPU utilization, Memory utilization, Application health - all demonstrated with real data
-- [ ] Task 2: Observability documentation (3 pillars, why it matters, common tools, Kubernetes observability)
-- [ ] Task 3: Full Argo CD GitOps demo - install, sync, verify, change replicas via git push, watch reconciliation, demonstrate self-healing
-- [ ] Screenshots
+- [x] Task 1: Metrics, Logs, CPU/Memory utilization, Application health - all demonstrated with real data
+- [x] Task 1: Alerts - full real lifecycle (inactive -> pending -> firing in Prometheus AND Alertmanager -> resolved), including a genuine `up==0` vs `absent()` gotcha found and fixed, not just a static rule
+- [x] Task 2: Observability documentation (3 pillars, why it matters, common tools, Kubernetes observability) - honest about the one gap (no real tracing backend stood up)
+- [x] Task 3: Full Argo CD GitOps demo - install (incl. a real CRD-size apply issue found and fixed), sync, verify, replica change via real git push, watched reconciliation, demonstrated self-healing with real event log proof
+- [ ] Screenshots - pending user handoff

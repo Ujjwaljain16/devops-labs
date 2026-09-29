@@ -1,0 +1,35 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Session19 Cluster Overview",
+    "tags": ["devops-labs", "module19"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Pods per Namespace",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [{"expr": "count(kube_pod_info) by (namespace)", "refId": "A"}]
+      },
+      {
+        "id": 2,
+        "title": "Node Memory Available %",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [{"expr": "(node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100", "refId": "A"}]
+      },
+      {
+        "id": 3,
+        "title": "Up Targets",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "targets": [{"expr": "sum(up)", "refId": "A"}]
+      }
+    ],
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "30s"
+  },
+  "overwrite": true
+}

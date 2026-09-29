@@ -93,7 +93,11 @@ This repository contains the complete laboratory implementations, source code, c
 │   └── README.md                        # 4 real pipeline runs incl. a genuine CVE catch (SCA) and a real Gitleaks scoping call
 ├── 17-terraform-infrastructure-as-code/ # TODO — Session 18: Terraform S3 demo (needs AWS)
 ├── 18-cloud-terraform-in-action/        # TODO — Session 19: end-to-end Terraform cloud infra (needs AWS)
-├── 19-monitoring-observability-gitops/  # TODO — Session 20: Monitoring, Observability, GitOps
+├── 19-monitoring-observability-gitops/
+│   ├── gitops-app/                      # Real Argo CD Application, synced from this repo, self-heal proven with real events
+│   ├── monitoring/                      # Prometheus alert rules + Grafana dashboard, both genuinely deployed & verified
+│   ├── ques.md                          # Assignment breakdown, why a separate cluster, why this repo is the GitOps source
+│   └── README.md                        # Real alert firing lifecycle, real GitOps sync/scale/self-heal, honest tracing gap
 ├── 20-final-devops-project/             # TODO — Session 21: Final capstone project
 ├── extra-kubernetes-workloads-rollback-and-dns/  # Bonus, not part of the doc's 20-module list
 │   ├── deployment/                     # v1-v4 Deployment manifests (nginx 1.24 -> 1.27), 4-revision rollout history
