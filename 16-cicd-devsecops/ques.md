@@ -46,14 +46,15 @@ Same situation as module 15: everything is built and verified locally first (tes
 
 ## 5. My completion checklist
 
-- [ ] Application source code (Flask, own design)
-- [ ] Tests (pytest, 8 tests) - verified locally
-- [ ] Dockerfile - verified locally (build, run, real curl against endpoints)
-- [ ] SAST (Bandit) - verified locally, 1 real finding investigated and justified-suppressed, not blindly ignored
-- [ ] SCA (pip-audit) - needs CI (local venv unavailable, same gap as module 15)
-- [ ] Secret scanning (Gitleaks) - CI only
-- [ ] Container image scan (Trivy) - verified locally, real findings (44 HIGH / 0 CRITICAL, all base-OS packages)
-- [ ] Security gate - gates on CRITICAL only (documented reasoning)
-- [ ] Push to GHCR - pending user go-ahead
-- [ ] Kubernetes manifests - written, pending real deploy against Minikube after push
-- [ ] Successful pipeline output + screenshots - pending push
+- [x] Application source code (Flask, own design)
+- [x] Tests (pytest, 8 tests) - verified locally and in CI
+- [x] Dockerfile - verified locally (build, run, real curl against endpoints)
+- [x] SAST (Bandit) - 1 real finding investigated and justified-suppressed, not blindly ignored
+- [x] SCA (pip-audit) - genuinely caught a real Flask CVE (PYSEC-2026-2151) in CI; fixed by upgrading
+- [x] Secret scanning (Gitleaks) - genuinely caught real (but out-of-scope) findings from unrelated module history; re-scoped correctly, documented the reasoning
+- [x] Container image scan (Trivy) - 44 HIGH / 0 CRITICAL, all base-OS packages; gate passed
+- [x] Security gate - CRITICAL-only policy, passed in CI
+- [x] Push to GHCR - [run 36577998208](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36577998208), image public, confirmed by actually pulling it
+- [x] Kubernetes manifests - applied for real to live Minikube, confirmed running the actual pushed image, confirmed serving real traffic via port-forward
+- [x] Successful pipeline output documented (4 runs: 3 real failures + fixes, then green)
+- [ ] Screenshots - pending user handoff

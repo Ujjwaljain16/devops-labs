@@ -87,10 +87,10 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── ques.md                          # Assignment breakdown + where "10-final-cicd-pipeline" actually came from
 │   └── README.md                        # Real pushed pipeline (3 live Actions runs incl. a genuine break-then-fix cycle)
 ├── 16-cicd-devsecops/
-│   ├── app/, tests/                     # Own Flask app + pytest suite — verified locally (8 passed)
-│   ├── Dockerfile, k8s/                 # Verified locally; k8s manifests for manual Minikube deploy (CI can't reach it)
+│   ├── app/, tests/                     # Own Flask app + pytest suite — verified locally & in CI (8 passed)
+│   ├── Dockerfile, k8s/                 # Real image pushed to GHCR, deployed to live Minikube, verified serving traffic
 │   ├── ques.md                          # Assignment breakdown, tool substitutions, why deploy is manual not CI
-│   └── README.md                        # Bandit/Trivy real findings + fixes, pipeline run pending a git push (needs go-ahead)
+│   └── README.md                        # 4 real pipeline runs incl. a genuine CVE catch (SCA) and a real Gitleaks scoping call
 ├── 17-terraform-infrastructure-as-code/ # TODO — Session 18: Terraform S3 demo (needs AWS)
 ├── 18-cloud-terraform-in-action/        # TODO — Session 19: end-to-end Terraform cloud infra (needs AWS)
 ├── 19-monitoring-observability-gitops/  # TODO — Session 20: Monitoring, Observability, GitOps
