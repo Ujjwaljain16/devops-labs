@@ -12,9 +12,9 @@
 
 ## 2. Explicitly NOT part of this assignment
 
-- Ingress, ConfigMaps, and Secrets - that's the 8 Sep session, done in [module 13](../13-kubernetes-ingress-configmaps-secrets/README.md). (An earlier version of this module was filed under that session's title because the transcript I'd been given for that date turned out to be Pod-lifecycle content; the folder is now named for what it actually contains.)
-- Blue-Green, Canary, and Recreate deployment strategies as hands-on labs - covered here only as theory (Task 7); the actual hands-on execution for these three lives in a separate module since they're substantial enough to deserve one
-- StatefulSet hands-on deployment - covered conceptually in [module 11](../11-kubernetes-workloads-rollback-and-dns/README.md), actual deployment lives there too
+- Ingress, ConfigMaps, and Secrets - that's the 8 Sep session, done in [module 11](../11-kubernetes-ingress-configmaps-secrets/README.md). (An earlier version of this module was filed under that session's title because the transcript I'd been given for that date turned out to be Pod-lifecycle content; the folder is now named for what it actually contains.)
+- Blue-Green, Canary, and Recreate deployment strategies as hands-on labs - covered here only as theory (Task 7); the actual hands-on execution for these three lives in [extra-deployment-strategies](../extra-deployment-strategies/README.md), which sits outside the doc's numbered 20-module sequence
+- StatefulSet hands-on deployment - covered conceptually here, actual deployment lives in [extra-kubernetes-workloads-rollback-and-dns](../extra-kubernetes-workloads-rollback-and-dns/README.md), which also sits outside the doc's numbered 20-module sequence
 
 ## 3. My completion checklist
 
