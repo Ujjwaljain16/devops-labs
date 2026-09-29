@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hpa-demo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hpa-demo-app
+  template:
+    metadata:
+      labels:
+        app: hpa-demo-app
+    spec:
+      containers:
+        - name: php-apache
+          image: registry.k8s.io/hpa-example
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 200m
+            limits:
+              cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hpa-demo-app
+spec:
+  selector:
+    app: hpa-demo-app
+  ports:
+    - port: 80
+      targetPort: 80
