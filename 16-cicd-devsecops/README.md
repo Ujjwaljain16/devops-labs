@@ -194,4 +194,18 @@ This completes the full chain from the doc's Expected Flow: **Code -> Build -> U
 
 ## Screenshots
 
-*(pending; see the checkpoint note)*
+Run 1: Unit Test and SAST pass, then SCA (pip-audit) genuinely fails on the real Flask CVE:
+
+![Run 1, SCA failed on the Flask CVE](screenshots/01_run1_sca_failed.png)
+
+Run 2: Test, SAST, SCA, and Secret Scan all pass, then the build job fails on the bad Trivy Action version pin:
+
+![Run 2, Docker Build job failed on an invalid trivy-action version](screenshots/02_run2_trivy_version_failed.png)
+
+Run 3: Test, SAST, and SCA pass, then Secret Scan genuinely fails on the Gitleaks full-history finding:
+
+![Run 3, Secret Scan failed before the scope fix](screenshots/03_run3_gitleaks_failed.png)
+
+Run 4 (final): all five jobs green:
+
+![Run 4, all jobs green](screenshots/04_run4_all_green.png)
