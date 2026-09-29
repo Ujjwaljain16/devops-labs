@@ -154,4 +154,14 @@ This was back to fully green; the same `needs: test` gate that blocked the broke
 
 ## Screenshots
 
-*(pending; see the checkpoint note)*
+The initial pushed run, all three jobs green:
+
+![Initial run, all green](screenshots/01_initial_run_all_green.png)
+
+The deliberate break: Test Application fails, and Build Application never runs at all because `needs: test` blocks it:
+
+![Broken run, Test Application failed and Build Application skipped](screenshots/02_broken_run_test_failed_build_skipped.png)
+
+The fix, all three jobs green again:
+
+![Fixed run, all green](screenshots/03_fixed_run_all_green.png)

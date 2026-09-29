@@ -40,4 +40,4 @@ Everything below (app, tests, Dockerfile, workflow file) is built and verified l
 - [x] Verified locally (pytest, docker build) before any push
 - [x] Pushed (user approved): [run 36575952176](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36575952176), all 3 jobs green
 - [x] Break-it-then-fix-it cycle: real red X ([run 36576115091](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36576115091), Build skipped) then real green check ([run 36576224924](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36576224924))
-- [ ] Screenshots: pending user handoff
+- [x] Screenshots: initial run, broken run, and fixed run, all captured from the real Actions UI
