@@ -45,11 +45,11 @@ Everything below (app, tests, Dockerfile, workflow file) is built and verified l
 
 ## 5. My completion checklist
 
-- [ ] Application source code (Python, own design)
-- [ ] Tests (pytest)
-- [ ] Dockerfile
-- [ ] GitHub Actions workflow: test -> build (needs: test) -> security-check, artifact upload
-- [ ] Verified locally (pytest, docker build) before any push
-- [ ] Pushed (pending user go-ahead) and pipeline runs green
-- [ ] Break-it-then-fix-it cycle, real red X then real green check
-- [ ] Screenshots of both the failing and passing runs
+- [x] Application source code (Python, own design — unit converter)
+- [x] Tests (pytest, 5 tests)
+- [x] Dockerfile — verified locally (build + run)
+- [x] GitHub Actions workflow: test -> build (needs: [test, security-check]), artifact upload
+- [x] Verified locally (pytest, docker build) before any push
+- [x] Pushed (user approved) — [run 36575952176](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36575952176), all 3 jobs green
+- [x] Break-it-then-fix-it cycle: real red X ([run 36576115091](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36576115091), Build skipped) then real green check ([run 36576224924](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36576224924))
+- [ ] Screenshots — pending user handoff

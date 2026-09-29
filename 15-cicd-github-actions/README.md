@@ -80,12 +80,78 @@ File: [.github/workflows/module15-converter-cicd.yml](../.github/workflows/modul
 
 ## Pipeline execution
 
-*(pending — needs a real `git push` to `Ujjwaljain16/devops-labs` to actually trigger. Everything above is verified locally; this section gets the real Actions run output once pushed.)*
+Pushed for real. First run: [github.com/Ujjwaljain16/devops-labs/actions/runs/36575952176](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36575952176) — all three jobs green:
+
+```
+✓ Security Check in 3s
+  ✓ Check for sensitive files
+  ✓ Show demo secret is masked
+✓ Test Application in 10s
+  ✓ Run pytest        (5 passed)
+✓ Build Application in 12s
+  ✓ Build artifact
+  ✓ Build Docker image
+  ✓ Upload build artifact
+```
+
+**Secrets masking, proven from the real log** (not just asserted) — `DEMO_SECRET`'s value never appears, even though the step explicitly echoes it:
+```
+env:
+  DEMO_SECRET: ***
+...
+The secret value itself (GitHub auto-masks it in logs):
+***
+Length check without exposing it: 39 characters
+```
+The length check line is the tell: GitHub doesn't just hide the variable, it redacts the literal string wherever it would appear in output — but a *derived* value like `${#DEMO_SECRET}` (a plain integer) isn't the secret itself, so it prints normally. That's the actual mechanism: log-scanning and string substitution, not variable-level sandboxing.
+
+**Artifact, proven from the real upload log:**
+```
+With the provided path, there will be 2 files uploaded
+Uploaded bytes 615
+Artifact converter-build has been successfully uploaded! Final size is 615 bytes. Artifact ID is 11038320148
+Artifact download URL: https://github.com/Ujjwaljain16/devops-labs/actions/runs/36575952176/artifacts/11038320148
+```
+Real `converter.py` + `build-info.txt` (with the actual commit SHA and UTC build time), sitting in GitHub's blob storage, downloadable from that URL — not a simulated step.
 
 ## Break-it-then-fix-it (proves `needs: test` actually gates the build)
 
-*(pending — same push dependency as above)*
+**Break:** changed `celsius_to_fahrenheit` to add `33` instead of `32`. Confirmed failing locally first (`2 failed, 3 passed`), then pushed. Real run: [.../actions/runs/36576115091](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36576115091):
+```
+✓ Security Check in 6s
+X Test Application in 8s
+    X Run pytest
+- Build Application          <- never ran at all ("-", not even attempted)
+```
+The actual pytest failure from that run's log:
+```
+tests/test_converter.py::test_celsius_to_fahrenheit FAILED               [ 20%]
+tests/test_converter.py::test_round_trip_celsius FAILED                  [100%]
+
+    def test_celsius_to_fahrenheit():
+>       assert celsius_to_fahrenheit(0) == 32
+E       assert 33.0 == 32
+```
+`Security Check` still ran and passed (it doesn't depend on `test`), but `Build Application` shows `-` — GitHub Actions never even scheduled it, because `needs: [test, security-check]` blocked on `test`'s failure. This is the doc's exact "Test -> FAIL -> Build does not run" scenario, reproduced for real, not asserted.
+
+**Fix:** reverted to `+ 32`. Confirmed passing locally (`5 passed`) first, then pushed. Real run: [.../actions/runs/36576224924](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36576224924):
+```
+✓ Security Check in 6s
+✓ Test Application (all 5 tests passing again)
+✓ Build Application in 21s
+  ✓ Build Docker image
+  ✓ Upload build artifact
+```
+Back to fully green — the same `needs: test` gate that blocked the broken build let this one through the instant the test suite passed again.
+
+## Summary
+
+| Run | Trigger | Test | Security Check | Build |
+|---|---|---|---|---|
+| [36575952176](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36575952176) | Initial push | ✓ | ✓ | ✓ |
+| [36576115091](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36576115091) | Deliberate break | ✗ | ✓ | — (skipped, `needs: test`) |
+| [36576224924](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36576224924) | Fix | ✓ | ✓ | ✓ |
 
 ## Screenshots
 
-*(pending)*
+*(pending — see the checkpoint note)*
