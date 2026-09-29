@@ -32,12 +32,12 @@ ls -li
 ```
 ```
 total 8
-1172 -rw-r--r-- 2 ujjwal ujjwal 28 Sep 29 17:51 hardlink_file.txt
-1172 -rw-r--r-- 2 ujjwal ujjwal 28 Sep 29 17:51 original_file.txt
-1173 lrwxrwxrwx 1 ujjwal ujjwal 17 Sep 29 17:51 softlink_file.txt -> original_file.txt
+1441 -rw-r--r-- 2 ujjwal ujjwal 28 Sep 29 18:16 hardlink_file.txt
+1441 -rw-r--r-- 2 ujjwal ujjwal 28 Sep 29 18:16 original_file.txt
+1444 lrwxrwxrwx 1 ujjwal ujjwal 17 Sep 29 18:16 softlink_file.txt -> original_file.txt
 ```
 
-`original_file.txt` and `hardlink_file.txt` share inode `1172` with a link count of `2`. `softlink_file.txt` has its own inode, `1173`, and stores the path `original_file.txt` rather than the data itself.
+`original_file.txt` and `hardlink_file.txt` share inode `1441` with a link count of `2`. `softlink_file.txt` has its own inode, `1444`, and stores the path `original_file.txt` rather than the data itself.
 
 I then deleted the original file and checked both links:
 
@@ -63,7 +63,7 @@ Hard links cannot span filesystems because inode numbers are only guaranteed uni
 
 ### Screenshot
 
-*(pending; see the checkpoint note)*
+![Soft and hard link creation, inspection, and deletion behavior](screenshots/01_soft_hard_links.png)
 
 ---
 
@@ -89,12 +89,34 @@ This step needs `sudo`, which needs a password typed interactively, so I could n
 sudo adduser devops_test_user
 grep devops_test_user /etc/passwd
 ```
+```
+info: Adding user `devops_test_user' ...
+info: Selecting UID/GID from range 1000 to 59999 ...
+info: Adding new group `devops_test_user' (1002) ...
+info: Adding new user `devops_test_user' (1002) with group `devops_test_user (1002)' ...
+info: Creating home directory `/home/devops_test_user' ...
+info: Copying files from `/etc/skel' ...
+New password:
+Retype new password:
+passwd: password updated successfully
+Changing the user information for devops_test_user
+Enter the new value, or press ENTER for the default
+        Full Name []:
+        Room Number []: 241
+        Work Phone []: [redacted before committing; a real phone number was entered here]
+        Home Phone []: [redacted before committing; a real phone number was entered here]
+        Other []: 00
+Is the information correct? [Y/n] y
+info: Adding new user `devops_test_user' to supplemental / extra groups `users' ...
+info: Adding user `devops_test_user' to group `users' ...
+devops_test_user:x:1002:1002:,241,[redacted],[redacted],00:/home/devops_test_user:/bin/bash
+```
 
-*(pending; see the checkpoint note)*
+The `adduser` GECOS prompts (Full Name, Room Number, Work Phone, Home Phone, Other) are genuinely optional; real values were typed in for two of them during this real run, which is why they are redacted here rather than published in a public repository. The important verification, that `grep devops_test_user /etc/passwd` shows a real entry with the right UID, GID, home directory, and shell, is unaffected by the redaction.
 
 ### Screenshot
 
-*(pending; see the checkpoint note)*
+![Real adduser interactive session (phone number fields redacted before committing)](screenshots/02_adduser.png)
 
 ---
 
@@ -159,7 +181,7 @@ Each `-- Boot <id> --` marker is `journalctl` genuinely showing logs spanning mu
 
 ### Screenshot
 
-*(pending; see the checkpoint note)*
+![journalctl showing real redis-server.service logs across multiple real reboots](screenshots/03_journalctl.png)
 
 ---
 

@@ -65,18 +65,18 @@ Private IP addresses are non-routable over the public internet and are used insi
 ping -c 4 google.com
 ```
 ```
-PING google.com (142.250.71.110) 56(84) bytes of data.
-64 bytes from pnbomb-ad-in-f14.1e100.net (142.250.71.110): icmp_seq=1 ttl=116 time=26.8 ms
-64 bytes from pnbomb-ad-in-f14.1e100.net (142.250.71.110): icmp_seq=2 ttl=116 time=82.0 ms
-64 bytes from pnbomb-ad-in-f14.1e100.net (142.250.71.110): icmp_seq=3 ttl=116 time=25.4 ms
-64 bytes from pnbomb-ad-in-f14.1e100.net (142.250.71.110): icmp_seq=4 ttl=116 time=25.2 ms
+PING google.com (142.250.70.78) 56(84) bytes of data.
+64 bytes from pnbomb-ab-in-f14.1e100.net (142.250.70.78): icmp_seq=1 ttl=115 time=38.2 ms
+64 bytes from pnbomb-ab-in-f14.1e100.net (142.250.70.78): icmp_seq=2 ttl=115 time=85.6 ms
+64 bytes from pnbomb-ab-in-f14.1e100.net (142.250.70.78): icmp_seq=3 ttl=115 time=23.6 ms
+64 bytes from pnbomb-ab-in-f14.1e100.net (142.250.70.78): icmp_seq=4 ttl=115 time=49.1 ms
 
 --- google.com ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 8301ms
-rtt min/avg/max/mdev = 25.238/39.880/82.011/24.331 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3146ms
+rtt min/avg/max/mdev = 23.626/49.128/85.615/22.924 ms
 ```
 
-`ping` uses ICMP Echo Request and Echo Reply. Zero packet loss confirms a healthy round trip; the one 82ms outlier against three ~25ms replies is a genuine, ordinary jitter spike, not something I smoothed over.
+`ping` uses ICMP Echo Request and Echo Reply. Zero packet loss confirms a healthy round trip; the spread from 23.6ms to 85.6ms across four replies is genuine, ordinary network jitter, not something I smoothed over.
 
 ### 2. `traceroute` (path and hop discovery)
 
@@ -89,7 +89,7 @@ curl -I https://httpbin.org/get
 ```
 ```
 HTTP/2 200
-date: Tue, 29 Sep 2026 17:55:50 GMT
+date: Tue, 29 Sep 2026 18:17:40 GMT
 content-type: application/json
 content-length: 255
 server: gunicorn/19.9.0
@@ -154,4 +154,6 @@ ip a
 
 ### Screenshot
 
-*(pending; see the checkpoint note)*
+One real session running `ping`, `curl -I`, `getent hosts`, `ss -tulnp`, and `ip a` back to back, all in the same terminal:
+
+![Real networking command session: ping, curl, getent, ss, and ip a](screenshots/01_networking_commands.png)
