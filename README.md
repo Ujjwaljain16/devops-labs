@@ -98,7 +98,7 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── monitoring/                      # Prometheus alert rules + Grafana dashboard, both genuinely deployed & verified
 │   ├── ques.md                          # Assignment breakdown, why a separate cluster, why this repo is the GitOps source
 │   └── README.md                        # Real alert firing lifecycle, real GitOps sync/scale/self-heal, honest tracing gap
-├── 20-final-devops-project/             # TODO — Session 21: Final capstone project
+├── 20-final-devops-project/             # TODO — Session 21: Final capstone project (needs AWS, needs Terraform 17/18 too)
 ├── extra-kubernetes-workloads-rollback-and-dns/  # Bonus, not part of the doc's 20-module list
 │   ├── deployment/                     # v1-v4 Deployment manifests (nginx 1.24 -> 1.27), 4-revision rollout history
 │   ├── daemonset-demo/                 # node-agent-demo DaemonSet, one Pod per node proof
@@ -112,7 +112,10 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── 04-recreate/                    # deployment-v1/v2.yaml, strategy.type Recreate — live-captured downtime window
 │   ├── ques.md                         # Assignment breakdown: gap-filled from repo audit against Lecture 10 Tasks 11-13
 │   └── README.md                       # Blue-Green cutover, canary traffic-split (incl. port-forward gotcha), recreate outage capture
-└── README.md                           # Master submission guide
+├── README.md                            # Master submission guide
+└── GAPS.md                              # What's left: modules 17/18/20 blocked on AWS creds, module 12's 2 open items
 ```
+
+**Current status:** 17/20 modules done. See [GAPS.md](GAPS.md) for exactly what's outstanding and why.
 
 ---
