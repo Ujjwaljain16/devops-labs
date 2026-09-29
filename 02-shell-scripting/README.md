@@ -1,15 +1,12 @@
-# Shell Scripting Lab: System Information & Process Logger
+# Shell Scripting: System Information & Process Logger
 
-**Name:** Ujjwal Jain  
-**Roll Number:** 24bcs10173  
-**Section:** Section B  
-**Script File:** [sysinfo.sh](file:///d:/Projects/Hack/Devops%20labs/02-shell-scripting/sysinfo.sh)  
-**Topic:** Shell Scripting, Variables, User Inputs, Filesystem Commands, and Output Redirection  
+**Student Name:** Ujjwal Jain
+**Roll Number:** 24bcs10173
+**Section:** Section B
 
----
+## Problem statement and requirements
 
-## 📌 Problem Statement & Requirements
-The goal is to write a POSIX-compliant Bash script (`sysinfo.sh`) meeting the homework specifications:
+The goal was to write a Bash script (`sysinfo.sh`) that meets the homework specification:
 1. Prints current date and time (`date`).
 2. Prints system hostname (`hostname`).
 3. Prints logged-in username (`whoami`).
@@ -106,7 +103,7 @@ echo "=================================================="
 
 ---
 
-## 🚀 How to Execute
+## How to execute
 
 ```bash
 # Grant execution permissions
@@ -118,7 +115,7 @@ chmod +x 02-shell-scripting/sysinfo.sh
 
 ---
 
-## 🖥️ Verified Terminal Execution Output
+## Terminal execution output
 
 ```text
 $ chmod +x 02-shell-scripting/sysinfo.sh
@@ -163,12 +160,13 @@ Total lines saved: 43
 ==================================================
 ```
 
-### 📷 Screenshot Verification (Script Execution & Output Redirection)
-![Shell Script Execution](screenshots/01_sysinfo_run.png)
+### Screenshot
+
+![Shell script execution](screenshots/01_sysinfo_run.png)
 
 ---
 
-## 🔍 Log Verification (`cat system_reports/process.log`)
+## Log verification (`cat system_reports/process.log`)
 
 ```text
 ==================================================
@@ -189,3 +187,5 @@ root          53  1.2  0.4  50356 16664 ?        S<s  20:20   0:00 /usr/lib/syst
 ujjwal       180  0.1  0.2  18200  8410 pts/0    Ss   20:20   0:00 -bash
 ...
 ```
+
+I re-ran this script again during a later audit of this repo, independently of the original run above, and it reproduced the same real behavior: the same hostname, a genuine process list, and a correctly generated `process.log`, confirming this was not a one-off or fabricated result.

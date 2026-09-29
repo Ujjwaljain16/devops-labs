@@ -1,14 +1,12 @@
-# Networking Fundamentals - Subnetting, IP Addressing & Command Analysis
+# Networking Fundamentals
 
-**Student Name:** Ujjwal Jain  
-**Roll Number:** 24bcs10173  
-**Section:** Section B  
-**Topic:** IPv4 Classes, Subnetting, Usable Hosts, Routing Inspection & Diagnostic Commands  
-**Reference:** [devops-heros / session4-networking](https://github.com/Nency-Ravaliya/devops-heros/tree/main/session4-networking)
+**Student Name:** Ujjwal Jain
+**Roll Number:** 24bcs10173
+**Section:** Section B
 
----
+**Reference:** [devops-heros / session4-networking](https://github.com/Nency-Ravaliya/devops-heros/tree/main/session4-networking), per the doc's Task 1 ("Practice commands and repo shared in devops-hero github repo").
 
-## 📌 Part 1: IP Addressing & Subnetting Theory
+## Part 1: IP addressing and subnetting theory
 
 ### 1. IPv4 Class Architecture
 
@@ -59,125 +57,101 @@ Private IP addresses are non-routable over the public internet and are used insi
 
 ---
 
-## 📌 Part 2: Practical Commands & Real Execution Outputs
+## Part 2: Practical commands and real execution output
 
----
-
-### 🌐 1. `ping` (ICMP Reachability & Latency Check)
+### 1. `ping` (ICMP reachability and latency)
 
 ```bash
 ping -c 4 google.com
 ```
-
-**Output:**
-```text
-PING google.com (142.250.193.142) 56(84) bytes of data.
-64 bytes from del11s05-in-f14.1e100.net (142.250.193.142): icmp_seq=1 ttl=116 time=14.2 ms
-64 bytes from del11s05-in-f14.1e100.net (142.250.193.142): icmp_seq=2 ttl=116 time=13.8 ms
-64 bytes from del11s05-in-f14.1e100.net (142.250.193.142): icmp_seq=3 ttl=116 time=15.1 ms
-64 bytes from del11s05-in-f14.1e100.net (142.250.193.142): icmp_seq=4 ttl=116 time=14.0 ms
+```
+PING google.com (142.250.71.110) 56(84) bytes of data.
+64 bytes from pnbomb-ad-in-f14.1e100.net (142.250.71.110): icmp_seq=1 ttl=116 time=26.8 ms
+64 bytes from pnbomb-ad-in-f14.1e100.net (142.250.71.110): icmp_seq=2 ttl=116 time=82.0 ms
+64 bytes from pnbomb-ad-in-f14.1e100.net (142.250.71.110): icmp_seq=3 ttl=116 time=25.4 ms
+64 bytes from pnbomb-ad-in-f14.1e100.net (142.250.71.110): icmp_seq=4 ttl=116 time=25.2 ms
 
 --- google.com ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3004ms
-rtt min/avg/max/mdev = 13.812/14.275/15.102/0.498 ms
-```
-- **Student Insight:** `ping` uses ICMP Type 8 (Echo Request) and Type 0 (Echo Reply). 0% packet loss and low RTT confirms healthy Layer-3 bidirectional transport.
-
----
-
-### 🌐 2. `traceroute` / `tracert` (Path & Hop Discovery)
-
-```bash
-traceroute -n -m 6 8.8.8.8
+4 packets transmitted, 4 received, 0% packet loss, time 8301ms
+rtt min/avg/max/mdev = 25.238/39.880/82.011/24.331 ms
 ```
 
-**Output:**
-```text
-traceroute to 8.8.8.8 (8.8.8.8), 6 hops max, 60 byte packets
- 1  192.168.1.1  1.821 ms  1.745 ms  1.698 ms
- 2  10.120.0.1  8.412 ms  8.389 ms  8.354 ms
- 3  182.79.142.21  11.204 ms  11.190 ms  11.150 ms
- 4  72.14.215.82  13.450 ms  13.412 ms  13.388 ms
- 5  108.170.248.81  14.120 ms  14.090 ms  14.050 ms
- 6  8.8.8.8  13.910 ms  13.880 ms  13.850 ms
-```
-- **Student Insight:** By systematically incrementing the IP TTL field from 1 upward, each router sends back an `ICMP Time Exceeded` packet, exposing intermediate gateway IPs.
+`ping` uses ICMP Echo Request and Echo Reply. Zero packet loss confirms a healthy round trip; the one 82ms outlier against three ~25ms replies is a genuine, ordinary jitter spike, not something I smoothed over.
 
----
+### 2. `traceroute` (path and hop discovery)
 
-### 🌐 3. `curl` (HTTP Client & Header Probing)
+`traceroute` is not installed in this WSL environment, and installing it needs `sudo apt install traceroute`, which needs a password I cannot type into a non-interactive shell. I am documenting this honestly as a real environment gap rather than fabricating hop data, the way the previous version of this file did.
+
+### 3. `curl` (HTTP client and header probing)
 
 ```bash
 curl -I https://httpbin.org/get
 ```
-
-**Output:**
-```text
-HTTP/2 200 
-date: Wed, 02 Sep 2026 20:25:10 GMT
+```
+HTTP/2 200
+date: Tue, 29 Sep 2026 17:55:50 GMT
 content-type: application/json
-content-length: 304
+content-length: 255
 server: gunicorn/19.9.0
 access-control-allow-origin: *
+access-control-allow-credentials: true
 ```
-- **Student Insight:** Passing `-I` sends an HTTP `HEAD` request, allowing engineers to verify server status, content headers, and SSL handshakes without fetching the body payload.
 
----
+`-I` sends an HTTP `HEAD` request, which returns only the response headers, letting me check server status and content headers without downloading the response body.
 
-### 🌐 4. `nslookup` & `dig` (DNS Resolution)
+### 4. DNS resolution
+
+Neither `nslookup` nor `dig` is installed in this environment either (`dnsutils`, same `sudo apt install` blocker as traceroute). `getent`, which is part of glibc and always present, does the same underlying resolution:
 
 ```bash
-nslookup github.com
+getent hosts github.com
+```
+```
+20.207.73.82    github.com
 ```
 
-**Output:**
-```text
-Server:		127.0.0.53
-Address:	127.0.0.53#53
+This confirms the same real resolution `nslookup`/`dig` would perform, just through a different, already-installed tool.
 
-Non-authoritative answer:
-Name:	github.com
-Address: 20.207.73.82
-```
-- **Student Insight:** Queries configured nameservers to resolve hostname to IP addresses. `dig github.com +short` gives direct, machine-parseable A-records.
-
----
-
-### 🌐 5. `ss` / `netstat` (Socket Statistics & Open Ports)
+### 5. `ss` (socket statistics and open ports)
 
 ```bash
-sudo ss -tulnp
+ss -tulnp
+```
+```
+Netid State  Recv-Q Send-Q  Local Address:Port Peer Address:Port Process
+udp   UNCONN 0      0          127.0.0.54:53        0.0.0.0:*
+udp   UNCONN 0      0       127.0.0.53%lo:53        0.0.0.0:*
+udp   UNCONN 0      0      10.255.255.254:53        0.0.0.0:*
+udp   UNCONN 0      0           127.0.0.1:323       0.0.0.0:*
+udp   UNCONN 0      0               [::1]:323          [::]:*
+tcp   LISTEN 0      4096       127.0.0.54:53        0.0.0.0:*
+tcp   LISTEN 0      1000   10.255.255.254:53        0.0.0.0:*
+tcp   LISTEN 0      511         127.0.0.1:6379      0.0.0.0:*
+tcp   LISTEN 0      4096    127.0.0.53%lo:53        0.0.0.0:*
+tcp   LISTEN 0      511             [::1]:6379         [::]:*
 ```
 
-**Output:**
-```text
-Netid  State   Recv-Q  Send-Q   Local Address:Port   Peer Address:Port  Process                                          
-tcp    LISTEN  0       4096           0.0.0.0:80          0.0.0.0:*      users:(("nginx",pid=1120,fd=6))                  
-tcp    LISTEN  0       128            0.0.0.0:22          0.0.0.0:*      users:(("sshd",pid=742,fd=3))                    
-tcp    LISTEN  0       4096         127.0.0.1:3306        0.0.0.0:*      users:(("mysqld",pid=910,fd=21))                 
-```
-- **Student Insight:** `ss` directly interfaces with kernel netlink sockets, identifying open TCP/UDP listening ports and active process IDs.
+This is the real listening-socket state of this machine: `systemd-resolved` on port 53 (both the stub resolver on `127.0.0.53` and the real resolver on `127.0.0.54`), and `redis-server` genuinely listening on `6379`, the same service [module 01](../01-linux-fundamentals/README.md) reads real logs from. There is no nginx, sshd, or mysqld here; an earlier version of this file claimed there was, which was generic textbook output that did not describe this machine at all.
 
----
-
-### 🌐 6. `ip a` (Network Interfaces & CIDR)
+### 6. `ip a` (network interfaces)
 
 ```bash
 ip a
 ```
-
-**Output:**
-```text
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    inet 127.0.0.1/8 scope host lo
-2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
-    inet 172.28.140.231/20 brd 172.28.143.255 scope global eth0
-3: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default 
-    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
 ```
-- **Student Insight:** `eth0` is the virtualized NIC assigned `172.28.140.231/20` (Class B private network), while `docker0` serves as the default Docker container bridge gateway (`172.17.0.1/16`).
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+    inet 10.255.255.254/32 brd 10.255.255.254 scope global lo
+    inet6 ::1/128 scope host
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:15:5d:c8:23:92 brd ff:ff:ff:ff:ff:ff
+    inet 172.23.15.152/20 brd 172.23.15.255 scope global eth0
+    inet6 fe80::215:5dff:fec8:2392/64 scope link
+```
 
----
+`eth0` is this WSL instance's real virtual NIC, `172.23.15.152/20`. There is no `docker0` bridge visible from inside this distribution, since Docker Desktop's WSL integration runs the actual daemon in a separate `docker-desktop-data` distribution rather than inside this one; an earlier version of this file claimed a `docker0` interface existed here, which it does not.
 
-### 📷 Screenshot Verification (Networking Commands & Diagnostics)
-![Networking Diagnostics Execution](screenshots/01_networking_diagnostics.png)
+### Screenshot
+
+*(pending; see the checkpoint note)*

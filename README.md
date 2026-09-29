@@ -24,7 +24,7 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── sysinfo.sh                      # System info script with user prompts, mkdir, touch, > redirection
 │   └── README.md                       # Shell script documentation & output logs
 ├── 03-networking-fundamentals/
-│   └── README.md                       # ping, traceroute, curl, nslookup, dig, ss/netstat, ip a
+│   └── README.md                       # ping, curl, DNS via getent, ss, ip a, all genuinely re-run; traceroute/nslookup/dig flagged as a real environment gap (packages not installed, needs sudo)
 ├── 04-git-and-github/
 │   └── README.md                       # git commit -a -m vs -m, git cherry-pick step-by-step
 ├── 05-docker-fundamentals/

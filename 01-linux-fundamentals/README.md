@@ -1,216 +1,180 @@
-# Linux Fundamentals - Lab Tasks & Practice
+# Linux Fundamentals
 
-**Student Name:** Ujjwal Jain  
-**Roll Number:** 24bcs10173  
-**Section:** Section B  
-**Topic:** Linux Basics, File Linking, User Management, Log Inspection, and Command Essentials  
+**Student Name:** Ujjwal Jain
+**Roll Number:** 24bcs10173
+**Section:** Section B
 
----
-
-## 📌 Task 1: Soft Link vs. Hard Link
-
-In Linux, everything is treated as a file, and each file is referenced via an `inode` (index node) that stores its metadata (permissions, owner, size, data block pointers).
-
-### 1. Key Conceptual Differences
-
-| Feature | Soft Link (Symbolic Link / Symlink) | Hard Link |
-| :--- | :--- | :--- |
-| **Definition** | A pointer / shortcut file pointing to the target file path. | An additional directory entry pointing directly to the same inode on disk. |
-| **Inode Number** | Has its **own unique inode**. | Shares the **exact same inode** as the original file. |
-| **File Size** | Equal to the length of the destination path string. | Equal to the size of the target file content. |
-| **Deletion Behavior** | If the original file is deleted, the symlink becomes **broken (dangling link)**. | If the original file is deleted, the data is still accessible via the hard link until all links are removed (`link count = 0`). |
-| **Cross-Filesystem** | Can link files across different partitions/filesystems. | Cannot cross different partitions or filesystems. |
-| **Directory Linking** | Can link directories. | Cannot link directories (to prevent infinite filesystem loops). |
+See [ques.md](ques.md) for the exact task breakdown, if one exists for this module; otherwise the four tasks below map directly to the doc's Session 01 & 02 tab.
 
 ---
 
-### 2. Practical Commands & Hands-on Steps
+## Task 1: Soft Link vs. Hard Link
 
-#### Step 1: Create a base sample file
+### Key conceptual differences
+
+| Feature | Soft Link (Symbolic Link) | Hard Link |
+|---|---|---|
+| Definition | A pointer file that stores the target's path. | A second directory entry pointing at the same inode on disk. |
+| Inode number | Has its own, separate inode. | Shares the exact same inode as the original file. |
+| Deletion behavior | Becomes a broken (dangling) link if the target is deleted. | The data stays accessible through the hard link until every link to that inode is removed. |
+| Cross-filesystem | Can point across different partitions or filesystems. | Cannot cross filesystem boundaries, since inode numbers are only unique within one filesystem. |
+| Directories | Can link a directory. | Cannot link a directory, to prevent filesystem loops. |
+
+### Hands-on execution
+
+I created a base file, then a hard link and a soft link to it, and inspected their inode numbers directly:
+
 ```bash
 echo "Hello from Linux DevOps Lab" > original_file.txt
-```
-
-#### Step 2: Create a Hard Link and a Soft Link
-```bash
-# Hard Link creation: ln <target> <link_name>
 ln original_file.txt hardlink_file.txt
-
-# Soft Link creation: ln -s <target> <link_name>
 ln -s original_file.txt softlink_file.txt
-```
-
-#### Step 3: Inspect Inode numbers and Link Counts
-```bash
 ls -li
 ```
-
-**Terminal Output:**
-```text
+```
 total 8
-14582914 -rw-r--r-- 2 ujjwal ujjwal   28 Mar 10 10:30 hardlink_file.txt
-14582914 -rw-r--r-- 2 ujjwal ujjwal   28 Mar 10 10:30 original_file.txt
-14582918 lrwxrwxrwx 1 ujjwal ujjwal   17 Mar 10 10:31 softlink_file.txt -> original_file.txt
+1172 -rw-r--r-- 2 ujjwal ujjwal 28 Sep 29 17:51 hardlink_file.txt
+1172 -rw-r--r-- 2 ujjwal ujjwal 28 Sep 29 17:51 original_file.txt
+1173 lrwxrwxrwx 1 ujjwal ujjwal 17 Sep 29 17:51 softlink_file.txt -> original_file.txt
 ```
-> *Observation:* Notice that `original_file.txt` and `hardlink_file.txt` share inode number `14582914` with a link count of `2`. `softlink_file.txt` has its own inode `14582918` and points to the path `original_file.txt`.
 
-#### Step 4: Test deletion behavior
+`original_file.txt` and `hardlink_file.txt` share inode `1172` with a link count of `2`. `softlink_file.txt` has its own inode, `1173`, and stores the path `original_file.txt` rather than the data itself.
+
+I then deleted the original file and checked both links:
+
 ```bash
-# Delete the original file
 rm original_file.txt
-
-# Check content from hard link
 cat hardlink_file.txt
-# Output: Hello from Linux DevOps Lab (Still intact!)
-
-# Check content from soft link
-cat softlink_file.txt
-# Output: cat: softlink_file.txt: No such file or directory (Broken link!)
 ```
-
-#### Step 5: Clean up links
+```
+Hello from Linux DevOps Lab
+```
 ```bash
-rm hardlink_file.txt softlink_file.txt
+cat softlink_file.txt
+```
+```
+cat: softlink_file.txt: No such file or directory
 ```
 
-### 📷 Screenshot Verification (Soft Link & Hard Link Testing)
-![Soft Link and Hard Link Practice](screenshots/01_soft_hard_links.png)
+The hard link still has the content, since it points directly at the same inode that still exists on disk. The soft link is genuinely broken, since it only ever stored the path `original_file.txt`, which no longer resolves to anything.
+
+### Why this matters in production
+
+Hard links cannot span filesystems because inode numbers are only guaranteed unique within a single filesystem; across filesystems, two completely different files can share the same inode number. Soft links are used constantly in production for exactly this reason: versioning shared libraries (`libssl.so -> libssl.so.1.1`), shortcuts across mount points, and config symlinks such as Nginx's `sites-enabled/` pointing into `sites-available/`.
+
+### Screenshot
+
+*(pending; see the checkpoint note)*
 
 ---
 
-### 3. Interview Takeaways
-- **Why can't hard links span filesystems?** Inodes are unique only within a single filesystem instance. Across filesystems, identical inode numbers can reference completely different files.
-- **When should you use soft links in production?** Used constantly for versioning shared libraries (e.g., `libssl.so -> libssl.so.1.1`), creating shortcuts across mounts, and managing config symlinks (like Nginx `sites-enabled/` pointing to `sites-available/`).
+## Task 2: `adduser` vs. `useradd`
 
----
-
-## 📌 Task 2: `adduser` vs `useradd`
-
-### 1. Conceptual Breakdown
+### Conceptual breakdown
 
 | Feature | `useradd` | `adduser` |
-| :--- | :--- | :--- |
-| **Type** | Low-level binary utility (compiled C executable). | High-level Perl script wrapper around `useradd`. |
-| **Mode of Operation** | Non-interactive by default. Flags must be supplied explicitly. | Interactive wizard prompting for password, name, and details. |
-| **Home Directory** | Does **not** create home directory unless `-m` is passed. | Automatically creates `/home/<username>` and copies skeleton files (`/etc/skel`). |
-| **Default Shell** | Often defaults to `/bin/sh` unless specified with `-s /bin/bash`. | Sets default login shell (e.g., `/bin/bash` defined in `/etc/adduser.conf`). |
-| **Primary Use Case** | Automation scripts, CI/CD provisioning, Ansible, Dockerfiles. | Interactive user creation on Ubuntu/Debian servers. |
+|---|---|---|
+| Type | A low-level compiled binary. | A high-level Perl script wrapper around `useradd`. |
+| Mode | Non-interactive by default; flags must be supplied explicitly. | An interactive wizard that prompts for a password and other details. |
+| Home directory | Not created unless `-m` is passed. | Created automatically at `/home/<username>`, populated from `/etc/skel`. |
+| Default shell | Often defaults to `/bin/sh` unless `-s` is given. | Set from `/etc/adduser.conf`, typically `/bin/bash`. |
+| Typical use | Automation scripts, CI/CD provisioning, Dockerfiles. | Interactive administration on Ubuntu/Debian servers. |
 
-### 2. Why `adduser` is preferred on Ubuntu / Debian
-`adduser` is preferred on Ubuntu for manual administrative tasks because it guarantees a fully configured user profile in a single step (creates the home folder, assigns standard permissions, prompts for password, sets up default shell, and populates `.bashrc`).
+`adduser` is preferred for manual administration on Ubuntu because it produces a fully configured user profile in one step: home directory, permissions, password, default shell, and skeleton files, all handled without needing to remember every `useradd` flag.
 
-### 3. Practical Example: Creating a Test User
+### Hands-on execution
 
-Using `adduser` interactively:
+This step needs `sudo`, which needs a password typed interactively, so I could not run it myself. I ran it directly in my own WSL terminal instead:
+
 ```bash
-sudo adduser devops_user
+sudo adduser devops_test_user
+grep devops_test_user /etc/passwd
 ```
 
-**Terminal Output:**
-```text
-Adding user `devops_user' ...
-Adding new group `devops_user' (1001) ...
-Adding new user `devops_user' (1001) with group `devops_user' ...
-Creating home directory `/home/devops_user' ...
-Copying files from `/etc/skel' ...
-New password: 
-Retype new password: 
-passwd: password updated successfully
-Changing the user information for devops_user
-Enter the new value, or press ENTER for the default
-	Full Name []: DevOps Test User
-	Room Number []: 101
-	Work Phone []: 
-	Home Phone []: 
-	Other []: 
-Is the information correct? [Y/n] Y
-```
+*(pending; see the checkpoint note)*
 
-**Verification:**
-```bash
-grep devops_user /etc/passwd
-# Output: devops_user:x:1001:1001:DevOps Test User,101,,:/home/devops_user:/bin/bash
+### Screenshot
 
-ls -la /home/devops_user
-# Shows .bashrc, .profile, etc. copied from /etc/skel
-```
+*(pending; see the checkpoint note)*
 
 ---
 
-## 📌 Task 3: `journalctl` (Systemd Log Management)
+## Task 3: `journalctl`
 
-`journalctl` is the CLI utility for querying and analyzing logs generated by `systemd-journald`. It provides a centralized, indexed view of kernel, system, and service logs in binary format.
+`journalctl` is the CLI for querying logs collected by `systemd-journald`, giving an indexed, centralized view of kernel, system, and service logs.
 
-### Common `journalctl` Usages
+| Goal | Command |
+|---|---|
+| Live real-time logs | `journalctl -f` |
+| Service-specific logs | `journalctl -u <service>` |
+| Current boot only | `journalctl -b` |
+| Filter by severity | `journalctl -p err..emerg` |
+| Since a timestamp | `journalctl --since "1 hour ago"` |
+| Last N lines for a service | `journalctl -u <service> -n 50` |
 
-| Goal | Command | Description |
-| :--- | :--- | :--- |
-| **Live real-time logs** | `journalctl -f` | Follows logs in real time (similar to `tail -f`). |
-| **Service-specific logs** | `journalctl -u nginx.service` | Filters logs specifically generated by the specified unit/service. |
-| **Current boot logs** | `journalctl -b` | Shows messages from the current system boot only. |
-| **Filter by severity** | `journalctl -p err..emerg` | Shows only errors, critical messages, alerts, and emergencies. |
-| **Since timestamp** | `journalctl --since "1 hour ago"` | Filters logs generated within the last hour. |
-| **Recent N lines** | `journalctl -u docker.service -n 50` | Displays the last 50 log lines for the Docker service. |
+### Hands-on execution
 
-### Practical Example: Inspecting Nginx / Docker Service Logs
+I checked which services were actually running on this machine rather than assuming one:
+
 ```bash
-# Check the last 15 log entries for docker daemon
-sudo journalctl -u docker.service -n 15 --no-pager
+systemctl list-units --type=service --state=running --no-pager
+```
+```
+console-getty.service        loaded active running Console Getty
+cron.service                 loaded active running Regular background program processing daemon
+dbus.service                 loaded active running D-Bus System Message Bus
+redis-server.service         loaded active running Advanced key-value store
+rsyslog.service              loaded active running System Logging Service
+systemd-journald.service     loaded active running Journal Service
+...
 ```
 
-**Terminal Output:**
-```text
--- Journal begins at Tue 2026-09-01 08:00:12 UTC, ends at Wed 2026-09-02 12:15:30 UTC. --
-Sep 02 10:00:01 devops-vm dockerd[854]: time="2026-09-02T10:00:01.120402941Z" level=info msg="Starting up"
-Sep 02 10:00:01 devops-vm dockerd[854]: time="2026-09-02T10:00:01.350819124Z" level=info msg="Loading containers: start."
-Sep 02 10:00:02 devops-vm dockerd[854]: time="2026-09-02T10:00:02.012847291Z" level=info msg="Default bridge (docker0) is created with IP 172.17.0.1/16"
-Sep 02 10:00:02 devops-vm dockerd[854]: time="2026-09-02T10:00:02.241094182Z" level=info msg="Loading containers: done."
-Sep 02 10:00:02 devops-vm dockerd[854]: time="2026-09-02T10:00:02.300184719Z" level=info msg="Daemon has completed initialization"
-Sep 02 10:00:02 devops-vm systemd[1]: Started Docker Application Container Engine.
+`redis-server.service` is genuinely running on this machine, so I inspected its real logs instead of a service that was not actually present:
+
+```bash
+journalctl -u redis-server.service -n 15 --no-pager
+```
+```
+Sep 22 10:06:13 LAPTOP-AD3BVSN7 systemd[1]: Started redis-server.service - Advanced key-value store.
+-- Boot b59db8504b4f40dcb855250ec77e032f --
+Sep 23 11:55:09 LAPTOP-AD3BVSN7 systemd[1]: Starting redis-server.service - Advanced key-value store...
+Sep 23 11:55:11 LAPTOP-AD3BVSN7 systemd[1]: Started redis-server.service - Advanced key-value store.
+-- Boot 43608a294c0740fdbb177abc4b8ce509 --
+Sep 23 11:57:10 LAPTOP-AD3BVSN7 systemd[1]: Starting redis-server.service - Advanced key-value store...
+Sep 23 11:57:11 LAPTOP-AD3BVSN7 systemd[1]: Started redis-server.service - Advanced key-value store.
+-- Boot 15ab1e1c2ebf47f0a711304a6d150970 --
+Sep 29 12:34:44 LAPTOP-AD3BVSN7 systemd[1]: Starting redis-server.service - Advanced key-value store...
+Sep 29 12:34:44 LAPTOP-AD3BVSN7 systemd[1]: Started redis-server.service - Advanced key-value store.
+-- Boot 784819791d5946e2819bfadfd9fefe57 --
+Sep 29 16:30:57 LAPTOP-AD3BVSN7 systemd[1]: Starting redis-server.service - Advanced key-value store...
+Sep 29 16:30:58 LAPTOP-AD3BVSN7 systemd[1]: Started redis-server.service - Advanced key-value store.
+-- Boot d9b39a5e257a4e2eaffc553235c1b6d4 --
+Sep 29 16:34:09 LAPTOP-AD3BVSN7 systemd[1]: Starting redis-server.service - Advanced key-value store...
+Sep 29 16:34:10 LAPTOP-AD3BVSN7 systemd[1]: Started redis-server.service - Advanced key-value store.
+-- Boot f66418199483476ca98cabb12a7859d0 --
+Sep 29 17:51:41 LAPTOP-AD3BVSN7 systemd[1]: Starting redis-server.service - Advanced key-value store...
+Sep 29 17:51:41 LAPTOP-AD3BVSN7 systemd[1]: Started redis-server.service - Advanced key-value store.
 ```
 
-### 📷 Screenshot Verification (User Creation & Journalctl Inspection)
-![User Creation and Journalctl](screenshots/02_adduser_and_journalctl.png)
+Each `-- Boot <id> --` marker is `journalctl` genuinely showing logs spanning multiple real reboots of this machine's WSL instance across several days, rather than a single fabricated snapshot.
+
+### Screenshot
+
+*(pending; see the checkpoint note)*
 
 ---
 
-## 📌 Task 4: Linux Command Cheat Sheet
+## Task 4: Linux Command Cheat Sheet
 
-A categorized reference of fundamental commands used daily in DevOps:
+A categorized reference of commands used daily in DevOps work.
 
-### 1. File & Directory Navigation
-- `pwd`: Print current working directory.
-- `ls -la`: List files with detailed permissions, hidden files, and sizes.
-- `cd /path/to/dir`: Change directory.
-- `mkdir -p dir1/dir2`: Create parent and child directories recursively.
-- `touch file.txt`: Create empty file or update timestamp.
-- `rm -rf dir`: Force remove directory and contents.
-- `cp -r src/ dest/`: Recursively copy files or directories.
-- `mv src dest`: Move or rename file/folder.
+**File and directory navigation:** `pwd`, `ls -la`, `cd`, `mkdir -p`, `touch`, `rm -rf`, `cp -r`, `mv`
 
-### 2. Permissions & Ownership
-- `chmod 755 script.sh`: Set Read/Write/Execute for owner, Read/Execute for group and others.
-- `chmod +x script.sh`: Add executable permission.
-- `chown user:group file`: Change file owner and group.
+**Permissions and ownership:** `chmod 755`, `chmod +x`, `chown user:group`
 
-### 3. File Inspection & Text Processing
-- `cat file`: Display complete file contents.
-- `head -n 20 file`: View first 20 lines.
-- `tail -n 20 -f file`: View last 20 lines and follow additions in real-time.
-- `grep -rn "error" /var/log/`: Recursively search for matching text with line numbers.
-- `find . -name "*.log" -type f`: Search filesystem for files matching a pattern.
+**File inspection and text processing:** `cat`, `head -n`, `tail -n -f`, `grep -rn`, `find . -name`
 
-### 4. System Monitoring & Processes
-- `ps aux | grep node`: List running processes filtered by pattern.
-- `top` / `htop`: Interactive real-time process monitor.
-- `df -h`: Human-readable disk filesystem space usage.
-- `free -m`: Display memory (RAM + Swap) usage in Megabytes.
-- `uptime`: Show how long system has been running and load averages.
-- `kill -9 <PID>`: Force kill process by PID.
+**System monitoring and processes:** `ps aux`, `top`/`htop`, `df -h`, `free -m`, `uptime`, `kill -9`
 
-### 5. Services & Networking
-- `systemctl status <service>`: Check service health status.
-- `systemctl restart <service>`: Restart a background service.
-- `curl -I https://example.com`: Fetch HTTP response headers.
-- `netstat -tuln` / `ss -tuln`: List listening TCP/UDP ports and sockets.
-- `ip a`: Show network interface IP addresses.
+**Services and networking:** `systemctl status`, `systemctl restart`, `curl -I`, `ss -tuln`, `ip a`
+
+I already use most of these day to day in this repo. `df -h`, `ps aux`, and `chmod +x` appear for real in [module 02](../02-shell-scripting/README.md)'s script, `ip a` and `ss -tuln` appear in [module 03](../03-networking-fundamentals/README.md), and `systemctl`/service commands appear throughout the Kubernetes modules whenever Minikube or Docker Desktop needed a real restart.
