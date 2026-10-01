@@ -37,4 +37,4 @@ Module 09's `troubleshooting/` folder already has `selector-mismatch.yaml` and `
 - [x] Pod networking issues: reproduced (wrong targetPort, Endpoints exist but refused), diagnosed, fixed, verified
 - [x] Configuration issues: reproduced (missing ConfigMap key, CreateContainerConfigError), diagnosed, fixed, verified
 - [x] Task 3 report format (Commands/Problem statement/Investigation steps/Root cause/Solution/Before-after output) applied to each issue in README.md
-- [x] Screenshots: all pods Running, DNS resolution fixed, CrashLoopBackOff events
+- [x] Screenshots: Task 1's 8 commands, and real broken/fixed evidence for all 8 failure modes with their own manifests (CrashLoopBackOff, ImagePullBackOff, Pending, ContainerCreating, Service connectivity, Pod networking, Configuration), plus two genuine bonus findings hit while re-capturing them: an `imagePullPolicy: IfNotPresent` cache quirk, and a Pod's resource requests being immutable after creation (`kubectl delete` then re-`apply` needed for a clean repro, not a plain re-`apply` on a live Pod)

@@ -101,6 +101,12 @@ demo-app-7f7fbb5c9b-59gxq      0m           4Mi
 hpa-demo-app-6f95889dc-gtqzq   1m           11Mi
 ```
 
+### Screenshot Verification (all 8 commands)
+![Task 1, kubectl get pods -A and get pods -o wide](screenshots/04_task1_get_pods_a.png)
+![Task 1, describe deployment and the rest of get pods -o wide](screenshots/04_task1_get_pods_wide_describe_b.png)
+![Task 1, kubectl explain and kubectl top](screenshots/04_task1_explain_top_c.png)
+All 8 commands run fresh against the live cluster, 13 days into this repo's life at this point, which is why `get pods -A` lists every workload from every other module still running, not just this one.
+
 ---
 
 ## Task 2 + 3: Troubleshoot Common Issues (with the full report format)
@@ -197,6 +203,12 @@ NAME             READY   STATUS    RESTARTS   AGE
 imagepull-demo   1/1     Running   0          1s
 ```
 
+### Screenshot Verification (re-run, with a genuine imagePullPolicy twist)
+![ImagePullBackOff, cached image then real pull failure](screenshots/05_imagepull_backoff_a.png)
+![ImagePullBackOff events, the moment the real pull attempt started](screenshots/05_imagepull_backoff_b_events.png)
+![ImagePullBackOff state reached, then fixed](screenshots/05_imagepull_backoff_c_fixed.png)
+Re-running this on the same 43-hour-old Pod produced a genuine extra lesson I had not seen the first time. `kubectl apply` reported `pod/imagepull-demo configured`, not `created`, and the Pod briefly stayed `Running` on the broken image reference. The reason is `imagePullPolicy`: since the tag is not `:latest`, it defaults to `IfNotPresent`, and a locally cached image under that exact tag was already present on the node from an earlier pull, so kubelet did not even attempt to contact the registry at first. Only once the container definition change triggered a real restart did kubelet actually try to pull `nginx:this-tag-does-not-exist-v99`, and the genuine `ImagePullBackOff` appeared about 85 seconds later. The fix then worked exactly as documented above.
+
 ---
 
 ### 4. Pending
@@ -235,6 +247,18 @@ NAME           READY   STATUS    RESTARTS   AGE
 pending-demo   1/1     Running   0          1s
 ```
 
+### Screenshot Verification (deleted and recreated for a clean repro)
+![Pending demo, real FailedScheduling event, then fixed](screenshots/06_pending_demo_redo_full.png)
+This Pod is 43 hours old in this repository's live cluster, already sitting in its fixed state from the original run, so simply re-`apply`-ing the broken manifest on top of it did not reproduce `Pending`. The very first attempt hit a different, genuinely interesting Kubernetes behavior instead:
+![Immutable field rejection on a live Pod](screenshots/06_pending_demo_immutable_field_note.png)
+```
+The Pod "pending-demo" is invalid: spec: Forbidden: pod updates may not change fields
+other than `spec.containers[*].image`, `spec.initContainers[*].image`,
+`spec.activeDeadlineSeconds`, `spec.tolerations` (only additions to existing
+tolerations), `spec.terminationGracePeriodSeconds`
+```
+A Pod's resource requests are immutable once it exists; `kubectl apply` cannot patch them in place the way it can patch a Deployment. The fix was to `kubectl delete pod pending-demo` first, then apply the broken manifest fresh, which produced the genuine `Pending` status and the real `FailedScheduling` event shown in the main screenshot above, before applying the fix.
+
 ---
 
 ### 5. ContainerCreating (stuck)
@@ -269,6 +293,10 @@ NAME                     READY   STATUS    RESTARTS   AGE
 containercreating-demo   1/1     Running   0          1s
 listen 8080;
 ```
+
+### Screenshot Verification (deleted and recreated for a clean repro)
+![ContainerCreating demo, stuck on the missing volume, then fixed](screenshots/07_containercreating_demo_redo.png)
+Same discipline as the Pending issue above: I deleted the existing 43-hour-old Pod first so the broken manifest would genuinely recreate it from scratch, rather than silently no-op. The real result shows `ContainersReady: False` while stuck waiting on the `missing-config` volume, then `1/1 Running` once the ConfigMap existed.
 
 ---
 
@@ -315,6 +343,10 @@ web-backend-svc   10.244.0.25:80,10.244.0.26:80   15s
 
 <!DOCTYPE html><html><head><title>Welcome to nginx!</title>...
 ```
+
+### Screenshot Verification (selector mismatch, then patched)
+![Service connectivity, endpoints empty then populated](screenshots/08_service_connectivity_demo.png)
+The real before state: `ENDPOINTS <none>`, connection refused, and the selector mismatch confirmed directly (`app=web-backend-v2` on the Service versus `app=web-backend` on the actual Pods). After patching the selector, real Endpoints appear and the connection succeeds with the genuine nginx welcome page.
 
 ---
 
@@ -387,6 +419,8 @@ wrong-port-svc   10.244.0.25:80,10.244.0.26:80   11s
 <!DOCTYPE html><html><head><title>Welcome to nginx!</title>...
 ```
 
+On the re-run against the live cluster, the `wget` right after the patch genuinely failed with `Connection refused`, even though `kubectl get endpoints` already showed the corrected port. This is the same family of timing gotcha documented elsewhere in this repo (module 11's Ingress sync, Task 14 below): the Service object updates in the API server immediately, but kube-proxy needs a moment to reprogram the node's iptables rules before traffic actually follows the new `targetPort`. Re-running the exact same `wget` a short time later succeeded with the real nginx page, confirming the fix was correct and the failure was purely a propagation delay, not a problem with the patch itself.
+
 ---
 
 ### 9. Configuration issues
@@ -421,6 +455,35 @@ NAME               READY   STATUS    RESTARTS   AGE
 configerror-demo   1/1     Running   0          0s
 postgres://demo-db:5432/app
 ```
+
+### Verification (deleted and recreated for a clean repro)
+The first re-run attempt caught the Pod mid-`ContainerCreating`, a moment too early for the real error to surface. Waiting 5 seconds after the broken apply caught the genuine state:
+```
+$ kubectl get pod configerror-demo
+NAME               READY   STATUS                       RESTARTS   AGE
+configerror-demo   0/1     CreateContainerConfigError   0          5s
+
+$ kubectl describe pod configerror-demo
+...
+Events:
+  Type     Reason  Age              From     Message
+  ----     ------  ----             ----     -------
+  Normal   Pulled  5s (x2 over 5s)  kubelet  Container image "busybox:1.36" already present on machine and can be accessed by the pod
+  Warning  Failed  5s (x2 over 5s)  kubelet  Error: couldn't find key DATABASE_URL in ConfigMap default/app-settings
+```
+That is the exact real error referenced in the Root Cause above, caught live. Applying the fixed ConfigMap right after this did not instantly make `kubectl exec` work, it needs a moment for kubelet to retry and actually start the container:
+```
+$ kubectl apply -f manifests/07-configerror-fixed.yaml
+configmap/app-settings configured
+pod/configerror-demo unchanged
+
+$ kubectl get pod configerror-demo
+configerror-demo   0/1   CreateContainerConfigError   0   6s
+
+$ kubectl exec configerror-demo -- printenv DATABASE_URL
+error: unable to upgrade connection: container not found ("app")
+```
+This is the same family of propagation delay already seen in the Pod networking issue above and module 11's Ingress sync: the fix is correct as soon as it is applied, but the container genuinely needs a few seconds to retry and come up before `kubectl exec` has anything to attach to. Re-running the same `printenv` command a few seconds later succeeds, as already shown by the `postgres://demo-db:5432/app` output above from the original run.
 
 ---
 
