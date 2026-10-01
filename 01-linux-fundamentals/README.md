@@ -4,7 +4,7 @@
 **Roll Number:** 24bcs10173
 **Section:** Section B
 
-See [ques.md](ques.md) for the exact task breakdown, if one exists for this module; otherwise the four tasks below map directly to the doc's Session 01 & 02 tab.
+The four tasks below map directly to the doc's Session 01 & 02 tab.
 
 ---
 

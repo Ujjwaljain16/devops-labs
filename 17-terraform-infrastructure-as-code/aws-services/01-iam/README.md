@@ -66,6 +66,6 @@ The principle that an identity should hold exactly the permissions it needs to d
 
 ## Common use cases
 
-- A CI/CD pipeline assuming a role to push a Docker image to a registry or deploy to Kubernetes, the same shape as [module 16](../../16-cicd-devsecops/README.md)'s `GITHUB_TOKEN`-based push to GHCR, just on AWS instead of GitHub Container Registry.
+- A CI/CD pipeline assuming a role to push a Docker image to a registry or deploy to Kubernetes, the same shape as [module 16](../../../16-cicd-devsecops/README.md)'s `GITHUB_TOKEN`-based push to GHCR, just on AWS instead of GitHub Container Registry.
 - An EC2 instance assuming a role to read from S3 or write to DynamoDB, without any access key stored on the instance itself.
 - A separate IAM user per tool or person (like `terraform-devops-labs` here) so that revoking one credential never affects anything else using the account.

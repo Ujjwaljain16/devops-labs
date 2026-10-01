@@ -53,7 +53,7 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── replicaset/                     # yatri-backend-rs.yaml + scaling practice
 │   ├── deployments/                    # deployment-v1.yaml / deployment-v2.yaml rolling update
 │   ├── troubleshooting/                # selector-mismatch.yaml & broken-image.yaml controlled-failure demos
-│   ├── resource-limits/                # cpu-throttle-pod.yaml & memory-oomkill-pod.yaml — real CPU throttling + OOMKilled demos
+│   ├── resource-limits/                # cpu-throttle-pod.yaml & memory-oomkill-pod.yaml: real CPU throttling + OOMKilled demos
 │   ├── ques.md                         # Assignment breakdown: explicit homework vs session practice
 │   └── README.md                       # kubectl transcripts: pod-lifecycle+hello.yaml live watch, RS self-healing, rolling update, troubleshooting fix-and-recover, resource limits, theory writeup
 ├── 10-kubernetes-networking-and-services/
@@ -61,20 +61,20 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── ques.md                         # Assignment breakdown: pod.yaml basics, apply vs create
 │   └── README.md                       # apply vs create proof, port-forward verification, kubectl get sweep
 ├── 11-kubernetes-ingress-configmaps-secrets/
-│   ├── 01-configmap/                   # app-config.yaml — declarative ConfigMap + JSONPath queries
-│   ├── 02-secret/                      # db-secret.yaml — Opaque Secret, base64 decode, trailing-newline gotcha
+│   ├── 01-configmap/                   # app-config.yaml: declarative ConfigMap + JSONPath queries
+│   ├── 02-secret/                      # db-secret.yaml: Opaque Secret, base64 decode, trailing-newline gotcha
 │   ├── 03-ingress/                     # campus-apps + host-based Ingress + hybrid host/path/TLS Ingress
 │   ├── 04-full-demo/                   # ConfigMap+Secret+backend+frontend+path-based Ingress, run-demo.sh / cleanup.sh
 │   ├── ques.md                         # Assignment breakdown (Lecture 12 task list, 14 tasks)
 │   └── README.md                       # ConfigMap live-update drill, Secret gotchas, NGINX Ingress, routing, TLS termination
 ├── 12-kubernetes-storage-hpa-probes/
-│   ├── 01-kubernetes-volumes/           # emptyDir, hostPath, static PV/PVC, dynamic provisioning via StorageClass — all deployed & verified
-│   ├── 02-hpa/                          # deployment.yaml, hpa.yml, load-generator.yaml — real scale-up 1->2->4->5 replicas captured
+│   ├── 01-kubernetes-volumes/           # emptyDir, hostPath, static PV/PVC, dynamic provisioning via StorageClass: all deployed & verified
+│   ├── 02-hpa/                          # deployment.yaml, hpa.yml, load-generator.yaml: real scale-up 1->2->4->5 replicas captured
 │   ├── ques.md                          # Assignment breakdown
 │   ├── gaps.md                          # Open items needing info from Ujjwal: Task 3 Mini Project brief, Probes scope
 │   └── README.md                        # HPA walkthrough: metrics-server setup, live polling log, kubectl describe hpa event history
 ├── 13-kubernetes-troubleshooting/
-│   ├── manifests/                       # 7 broken/fixed manifest pairs — all 9 doc-listed failure states genuinely reproduced & fixed
+│   ├── manifests/                       # 7 broken/fixed manifest pairs: all 9 doc-listed failure states genuinely reproduced & fixed
 │   ├── ques.md                          # Assignment breakdown
 │   └── README.md                        # Full identify/investigate/root-cause/fix/verify report for every issue, plus Task 1's 8-command toolkit
 ├── 14-helm/
@@ -82,12 +82,12 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── ques.md                          # Assignment breakdown
 │   └── README.md                        # All 11 helm commands + full install->upgrade->upgrade->rollback workflow, real revisions & verification
 ├── 15-cicd-github-actions/
-│   ├── app/, tests/                     # Own unit-conversion app + pytest suite — verified locally (5 passed)
+│   ├── app/, tests/                     # Own unit-conversion app + pytest suite: verified locally (5 passed)
 │   ├── Dockerfile                       # Verified locally (docker build + docker run)
 │   ├── ques.md                          # Assignment breakdown + where "10-final-cicd-pipeline" actually came from
 │   └── README.md                        # Real pushed pipeline (3 live Actions runs incl. a genuine break-then-fix cycle)
 ├── 16-cicd-devsecops/
-│   ├── app/, tests/                     # Own Flask app + pytest suite — verified locally & in CI (8 passed)
+│   ├── app/, tests/                     # Own Flask app + pytest suite: verified locally & in CI (8 passed)
 │   ├── Dockerfile, k8s/                 # Real image pushed to GHCR, deployed to live Minikube, verified serving traffic
 │   ├── ques.md                          # Assignment breakdown, tool substitutions, why deploy is manual not CI
 │   └── README.md                        # 4 real pipeline runs incl. a genuine CVE catch (SCA) and a real Gitleaks scoping call
@@ -97,7 +97,7 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── ques.md                          # Assignment breakdown
 │   └── README.md                        # Module overview, the AWS access key troubleshooting story
 ├── 18-cloud-terraform-in-action/
-│   ├── terraform/                       # VPC, subnet, IGW, route table, security group, EC2 (t3.micro), S3 — real resources, created then destroyed
+│   ├── terraform/                       # VPC, subnet, IGW, route table, security group, EC2 (t3.micro), S3: real resources, created then destroyed
 │   ├── screenshots/                     # Real terminal verification screenshot from my own WSL session
 │   ├── architecture-diagram.svg         # VPC/subnet/SG/EC2/S3 architecture diagram
 │   ├── ques.md                          # Assignment breakdown, incl. the t2.micro vs t3.micro free-tier fix
@@ -107,18 +107,18 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── monitoring/                      # Prometheus alert rules + Grafana dashboard, both genuinely deployed & verified
 │   ├── ques.md                          # Assignment breakdown, why a separate cluster, why this repo is the GitOps source
 │   └── README.md                        # Real alert firing lifecycle, real GitOps sync/scale/self-heal, honest tracing gap
-├── 20-final-devops-project/             # TODO — Session 21: Final capstone project (needs AWS, needs Terraform 17/18 too)
+├── 20-final-devops-project/             # TODO, Session 21: Final capstone project (needs Terraform)
 ├── extra-kubernetes-workloads-rollback-and-dns/  # Bonus, not part of the doc's 20-module list
 │   ├── deployment/                     # v1-v4 Deployment manifests (nginx 1.24 -> 1.27), 4-revision rollout history
 │   ├── daemonset-demo/                 # node-agent-demo DaemonSet, one Pod per node proof
-│   ├── statefulset-demo/               # headless-service.yaml + statefulset.yaml — 3-replica MySQL, ordinal identity, PVC-per-ordinal proof
+│   ├── statefulset-demo/               # headless-service.yaml + statefulset.yaml: 3-replica MySQL, ordinal identity, PVC-per-ordinal proof
 │   ├── dns-test/                       # curl-test-pod.yaml for hands-on FQDN/CoreDNS resolution proof
 │   ├── ques.md                         # Assignment breakdown: StatefulSet/DaemonSet homework vs already-covered ReplicaSet/Deployment
 │   └── README.md                       # Rollback V4->V1, DNS/CoreDNS resolution proof, live StatefulSet deploy + identity-invariance vs Deployment
 ├── extra-deployment-strategies/         # Bonus, not part of the doc's 20-module list
-│   ├── 02-blue-green/                  # deployment-blue/green.yaml + service-blue/green.yaml — instant cutover & rollback
-│   ├── 03-canary/                      # deployment-stable(9)/canary(1).yaml + service.yaml — real traffic-ratio testing
-│   ├── 04-recreate/                    # deployment-v1/v2.yaml, strategy.type Recreate — live-captured downtime window
+│   ├── 02-blue-green/                  # deployment-blue/green.yaml + service-blue/green.yaml: instant cutover & rollback
+│   ├── 03-canary/                      # deployment-stable(9)/canary(1).yaml + service.yaml: real traffic-ratio testing
+│   ├── 04-recreate/                    # deployment-v1/v2.yaml, strategy.type Recreate: live-captured downtime window
 │   ├── ques.md                         # Assignment breakdown: gap-filled from repo audit against Lecture 10 Tasks 11-13
 │   └── README.md                       # Blue-Green cutover, canary traffic-split (incl. port-forward gotcha), recreate outage capture
 ├── README.md                            # Master submission guide

@@ -6,7 +6,7 @@
 
 ## Problem statement and requirements
 
-The goal was to write a Bash script (`sysinfo.sh`) that meets the homework specification:
+My goal was to write a Bash script (`sysinfo.sh`) that meets the homework specification. It needed to do the following:
 1. Prints current date and time (`date`).
 2. Prints system hostname (`hostname`).
 3. Prints logged-in username (`whoami`).
@@ -20,7 +20,7 @@ The goal was to write a Bash script (`sysinfo.sh`) that meets the homework speci
 
 ---
 
-## 💻 Script Source Code (`sysinfo.sh`)
+## Script source code (`sysinfo.sh`)
 
 ```bash
 #!/bin/bash
@@ -103,7 +103,7 @@ echo "=================================================="
 
 ---
 
-## How to execute
+## How I ran it
 
 ```bash
 # Grant execution permissions
@@ -115,7 +115,7 @@ chmod +x 02-shell-scripting/sysinfo.sh
 
 ---
 
-## Terminal execution output
+## Terminal output from my run
 
 ```text
 $ chmod +x 02-shell-scripting/sysinfo.sh
@@ -166,7 +166,7 @@ Total lines saved: 43
 
 ---
 
-## Log verification (`cat system_reports/process.log`)
+## Verifying the log (`cat system_reports/process.log`)
 
 ```text
 ==================================================

@@ -70,4 +70,4 @@ resource "aws_s3_bucket_public_access_block" "demo" {
 - Static website hosting, serving HTML/CSS/JS directly from a bucket.
 - A Terraform remote state backend, the standard place teams store `terraform.tfstate` so it is shared and locked across a team rather than kept on one person's laptop (not used in this module, where state stays local, but the natural next step for this exact project).
 - Application file storage: user uploads, generated reports, backups, logs.
-- A target for CI/CD build artifacts, conceptually the same role GHCR plays for Docker images in [module 16](../../16-cicd-devsecops/README.md), just for arbitrary files instead of container images.
+- A target for CI/CD build artifacts, conceptually the same role GHCR plays for Docker images in [module 16](../../../16-cicd-devsecops/README.md), just for arbitrary files instead of container images.

@@ -8,7 +8,7 @@
 
 ---
 
-## 📌 Task 1: Docker Container Networking & Multi-Network Isolation
+## Task 1: Docker Container Networking & Multi-Network Isolation
 
 ### 1. Architecture & Design Goal
 To simulate a secure 3-tier enterprise architecture, we establish custom bridge networks such that:
@@ -106,12 +106,12 @@ round-trip min/avg/max = 0.070/0.096/0.122 ms
 ```
 > **Result:** ✅ Successful. Backend queries database securely over `lab-db-net`.
 
-### 📷 Screenshot Verification (Network Isolation Test)
+### Screenshot Verification (Network Isolation Test)
 ![Container Network Isolation Test](screenshots/01_container_network_test.png)
 
 ---
 
-## 📌 Task 2: Host Network Mode (`--network host`)
+## Task 2: Host Network Mode (`--network host`)
 
 ### 1. Concept
 In Host Network mode (`--network host`), the container bypasses Docker's virtual network stack and binds directly to the host's physical/virtual network interface, eliminating NAT latency.
@@ -135,7 +135,7 @@ Content-Type: text/html
 
 ---
 
-## 📌 Task 3: Bind Mounts (Live Hot-Reloading)
+## Task 3: Bind Mounts (Live Hot-Reloading)
 
 ### 1. Concept
 A bind mount mounts a local host directory into the container. Any edits on the host filesystem reflect inside the container instantaneously without rebuilding images or restarting containers.
@@ -174,12 +174,12 @@ curl -s http://localhost:8085 | grep "<h1>"
 ```
 > **Result:** Content updated dynamically in real time through the shared filesystem bind mount.
 
-### 📷 Screenshot Verification (Bind Mount Hot-Reload)
+### Screenshot Verification (Bind Mount Hot-Reload)
 ![Bind Mount Hot Reload](screenshots/02_bind_mount_hot_reload.png)
 
 ---
 
-## 📌 Task 4: Docker Overlay Networks Deep Dive
+## Task 4: Docker Overlay Networks Deep Dive
 
 ### 1. Overview & Multi-Host Networking
 An **Overlay Network** enables containers running across physically distinct Docker hosts (nodes in a Docker Swarm or Kubernetes cluster) to communicate transparently on a private, routable Layer-2 virtual network.
@@ -209,7 +209,7 @@ An **Overlay Network** enables containers running across physically distinct Doc
 
 ---
 
-## 📌 Task 5: Multi-Network Backend: `docker network connect` + `docker inspect` Verification
+## Task 5: Multi-Network Backend: `docker network connect` + `docker inspect` Verification
 
 In Task 1, I already put `lab-backend` on `lab-frontend-net` at creation time and connected it to `lab-db-net` right after, but I never actually *proved* the multi-network membership with `docker inspect`. I redid the exercise from a clean state specifically to capture that evidence.
 
@@ -261,13 +261,13 @@ PING lab-db (172.21.0.2): 56 data bytes
 ```
 The same command that failed in step 1 now succeeds. The only thing that changed in between is the `docker network connect`, which is exactly the point: **containers gain access to a network only when explicitly attached to it**. Isolation is not something one has to opt out of; it is the default.
 
-### 📷 Screenshot Verification (`docker inspect` multi-network + volume persistence)
+### Screenshot Verification (`docker inspect` multi-network + volume persistence)
 ![Multi-network inspect and volume persistence](screenshots/03_multinetwork_inspect_and_volume.png)
 This one screenshot covers both Task 5 and Task 6 evidence together: the `docker inspect` output showing both networks, the `lab-db` ping succeeding, and the `my-data` volume persistence check, all run back to back. The failed `cd` line at the top and the `compose-demo`/`docker exec` errors near the end can be disregarded; that was a path mistake on my part, a Git-Bash-style path handed to a WSL shell where the D: drive is mounted differently. I re-verified Task 7 below separately with the corrected path.
 
 ---
 
-## 📌 Task 6: Docker-Managed Volumes (vs. Bind Mounts)
+## Task 6: Docker-Managed Volumes (vs. Bind Mounts)
 
 Task 3 used a bind mount (host directory → container). This task uses a **Docker-managed named volume** instead: the data lives inside Docker's own storage, not a folder I control on the host.
 
@@ -310,9 +310,9 @@ The data was never on the host filesystem in any path I control. It lived in Doc
 
 ---
 
-## 📌 Task 7: Docker Compose: Frontend + Backend + DB as One Stack
+## Task 7: Docker Compose: Frontend + Backend + DB as One Stack
 
-Everything in Tasks 1–6 was individual `docker network`/`docker run`/`docker volume` commands. This task represents the same three-tier shape (frontend / backend / database) as a single `docker-compose.yml`, in [`compose-demo/`](compose-demo/).
+Everything in Tasks 1 to 6 was individual `docker network`/`docker run`/`docker volume` commands. This task represents the same three-tier shape (frontend / backend / database) as a single `docker-compose.yml`, in [`compose-demo/`](compose-demo/).
 
 ```yaml
 services:
@@ -423,7 +423,7 @@ sys
 ```
 `compose_demo` exists automatically, created from the `MYSQL_DATABASE` environment variable in the compose file; no manual `CREATE DATABASE` was needed.
 
-### 📷 Screenshot Verification (build → up → verification)
+### Screenshot Verification (build → up → verification)
 ![Compose build, up, and verification](screenshots/04_compose_up_and_verification.png)
 To be transparent about this screenshot, I ran the `wget`/`mysql` verification commands in the same breath as `docker compose up -d --build`, with zero wait in between, so this screenshot actually shows both of them failing for real: `wget: can't connect to remote host (172.23.0.3): Connection refused` and `mysql: ERROR 2002 ... Can't connect to local MySQL server`. This is not a broken setup; it is a genuine startup race, since the Python backend and MySQL both need a couple of real seconds after "container started" before they are actually listening, and this hit them mid-boot. I re-ran just those two commands about a minute later, once both services had actually finished starting, and they worked fine:
 ```text

@@ -6,11 +6,11 @@
 
 ## What is VPC?
 
-A VPC is a logically isolated private network inside AWS, within which EC2 instances, databases, and most other networked AWS resources run. It is the cloud equivalent of the private Docker network this repo's own [Docker networking module](../../07-docker-networking-and-volumes/README.md) demonstrates, just at AWS account scale rather than on one machine: its own IP address range, its own routing, its own isolation from every other customer's traffic by default.
+A VPC is a logically isolated private network inside AWS, within which EC2 instances, databases, and most other networked AWS resources run. It is the cloud equivalent of the private Docker network this repo's own [Docker networking module](../../../07-docker-networking-and-volumes/README.md) demonstrates, just at AWS account scale rather than on one machine: its own IP address range, its own routing, its own isolation from every other customer's traffic by default.
 
 ## CIDR
 
-CIDR notation (for example `10.0.0.0/16`) defines a VPC's IP address range: the base address plus a prefix length stating how many leading bits are fixed, leaving the rest available for subnets and hosts. `/16` gives 65,536 addresses; a `/24` subnet carved out of it gives 256. This is the same CIDR math already covered in [module 03](../../03-networking-fundamentals/README.md)'s subnetting section, applied here to a cloud-defined network instead of a physical one.
+CIDR notation (for example `10.0.0.0/16`) defines a VPC's IP address range: the base address plus a prefix length stating how many leading bits are fixed, leaving the rest available for subnets and hosts. `/16` gives 65,536 addresses; a `/24` subnet carved out of it gives 256. This is the same CIDR math already covered in [module 03](../../../03-networking-fundamentals/README.md)'s subnetting section, applied here to a cloud-defined network instead of a physical one.
 
 ## Subnets
 

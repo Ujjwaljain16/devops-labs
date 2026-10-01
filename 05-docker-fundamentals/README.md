@@ -7,8 +7,8 @@
 
 ---
 
-## 📌 Project Overview
-This laboratory demonstrates building, containerizing, and running 6 distinct Hello World web applications across different runtime ecosystems:
+## Project Overview
+For this module I containerized and ran 6 distinct Hello World web applications, each on a different runtime ecosystem, to get hands on practice with Dockerfiles, base images, and port mapping across stacks that behave quite differently from each other:
 1. **`nodejs-app`** (Node.js / Express on port `3000`)
 2. **`python-app`** (Python / Flask on port `5000`)
 3. **`java-app`** (Java / Built-in HTTP Server on port `8080`)
@@ -18,7 +18,8 @@ This laboratory demonstrates building, containerizing, and running 6 distinct He
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
+Here is how I laid out the folders, one per stack, each with its own Dockerfile and application source:
 ```text
 05-docker-fundamentals/
 ├── Apache-app/
@@ -46,7 +47,8 @@ This laboratory demonstrates building, containerizing, and running 6 distinct He
 
 ---
 
-## 🚀 Build, Run & Verification Matrix
+## Build, Run and Verification Matrix
+I used the same three steps for every stack: build an image, run it as a container with a unique host port and container name, then hit the mapped URL. The table below is the exact set of commands I ran for each of the 6 apps.
 
 | Application | Build Command | Run Command | Access URL |
 | :--- | :--- | :--- | :--- |
@@ -59,9 +61,11 @@ This laboratory demonstrates building, containerizing, and running 6 distinct He
 
 ---
 
-## 🖥️ Verification Outputs
+## Verification Outputs
+Once all 6 containers were up, I confirmed everything was actually running and reachable in two ways: listing the containers directly through Docker, then probing each one's endpoint with `curl`.
 
 ### 1. Checking Active Containers
+I ran this to confirm all 6 containers were up at the same time, each bound to its own host port:
 ```bash
 docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
 ```
@@ -78,6 +82,7 @@ nginx-container     devops-nginx     Up 2 minutes   0.0.0.0:8083->80/tcp
 ```
 
 ### 2. Probing Endpoints via `curl`
+I then curled each container's mapped port directly, to confirm the actual response body coming back matched what each app was supposed to serve, not just that the container was marked "Up":
 ```bash
 # Node.js
 curl -s http://localhost:3000 | grep -o "Hello World from Node.js[^<]*"
@@ -106,7 +111,8 @@ curl -s http://localhost:8083 | grep -o "Hello World from Nginx[^<]*"
 
 ---
 
-## 📷 Screenshot Verifications (Web Applications & Container Matrix)
+## Screenshot Verifications (Web Applications and Container Matrix)
+Alongside the `curl` output above, I also captured screenshots of each app loaded directly in the browser, plus one of the full container matrix from `docker ps`.
 
 ### 1. Application Web Previews
 

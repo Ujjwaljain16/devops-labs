@@ -7,10 +7,10 @@
 
 ---
 
-## 📌 Task 1 & 2: Multi-Stage Dockerfile Execution & Verification
+## Task 1 & 2: Multi-Stage Dockerfile Execution & Verification
 
 ### 1. Conceptual Value of Multi-Stage Builds
-In traditional single-stage Docker builds, compilers, build toolchains (SDKs, header files, linters), and intermediate files linger in the final container image, causing:
+When I build a single-stage Docker image, the compiler, the build toolchain (SDKs, header files, linters), and all the intermediate files linger in the final container image. That causes:
 - Bloated image sizes (often > 800MB - 1GB).
 - Increased security attack surface (unnecessary utilities like `gcc`, package managers, etc.).
 - Slow pull/push times in CI/CD pipelines.
@@ -99,11 +99,11 @@ REPOSITORY               TAG       IMAGE ID       CREATED          SIZE
 devops-multistage-app    v1.0      3fa8192c7102   2 minutes ago    12.4MB
 golang                   1.22      9f82181bc701   2 weeks ago      302MB
 ```
-> *Result:* The final production image is only **12.4 MB**, cutting down over **95%** of unnecessary image weight.
+My final production image comes out to only **12.4 MB**, cutting down over **95%** of unnecessary image weight compared to the 302MB `golang:1.22` builder image.
 
 ---
 
-## 📌 Task 3: Docker Application Deployment (3 Different Stacks)
+## Task 3: Docker Application Deployment (3 Different Stacks)
 
 I deployed 3 distinct application architectures using Docker containerization:
 
@@ -142,7 +142,7 @@ I deployed 3 distinct application architectures using Docker containerization:
 
 ---
 
-## 📷 Screenshot Verifications (Multi-Stage Build & Container Status)
+## Screenshot Verifications (Multi-Stage Build & Container Status)
 
 ### 1. Multi-Stage Web Application Running on Port 8080
 ![Multi-Stage Application](screenshots/01_multistage_app.png)
