@@ -58,8 +58,11 @@ This repository contains the complete laboratory implementations, source code, c
 │   └── README.md                       # kubectl transcripts: pod-lifecycle+hello.yaml live watch, RS self-healing, rolling update, troubleshooting fix-and-recover, resource limits, theory writeup
 ├── 10-kubernetes-networking-and-services/
 │   ├── pod.yaml                        # Hand-written Nginx Pod manifest (apiVersion/kind/metadata/spec)
-│   ├── ques.md                         # Assignment breakdown: pod.yaml basics, apply vs create
-│   └── README.md                       # apply vs create proof, port-forward verification, kubectl get sweep
+│   ├── 01-clusterip/                   # Deployment + Service + client Pod, 3 real access paths proven
+│   ├── 02-loadbalancer/                # Deployment + Service, minikube service --url workaround, real response
+│   ├── 03-externalname/                # Service aliasing a real external API, real CNAME + response
+│   ├── ques.md                         # Assignment breakdown: pod.yaml basics, apply vs create, all 5 Service types
+│   └── README.md                       # apply vs create proof, port-forward verification, kubectl get sweep, all 5 Service types (2 cross-referenced from modules 08 and extra-k8s)
 ├── 11-kubernetes-ingress-configmaps-secrets/
 │   ├── 01-configmap/                   # app-config.yaml: declarative ConfigMap + JSONPath queries
 │   ├── 02-secret/                      # db-secret.yaml: Opaque Secret, base64 decode, trailing-newline gotcha
