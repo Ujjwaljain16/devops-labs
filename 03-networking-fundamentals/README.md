@@ -157,3 +157,36 @@ ip a
 One real session running `ping`, `curl -I`, `getent hosts`, `ss -tulnp`, and `ip a` back to back, all in the same terminal:
 
 ![Real networking command session: ping, curl, getent, ss, and ip a](screenshots/01_networking_commands.png)
+
+### 7. Host identity and routing: `hostname`, `whoami`, `hostname -I`, `ip route`, `/etc/hosts`
+
+```bash
+hostname
+whoami
+hostname -I
+ip route
+cat /etc/hosts
+```
+```
+LAPTOP-AD3BVSN7
+ujjwal
+172.23.15.152
+
+default via 172.23.0.1 dev eth0 proto kernel
+172.23.0.0/20 dev eth0 proto kernel scope link src 172.23.15.152
+
+127.0.0.1       localhost
+127.0.1.1       LAPTOP-AD3BVSN7.localdomain     LAPTOP-AD3BVSN7
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+127.0.0.1  yatri.local portal.campus.local api.campus.local
+```
+`hostname -I` matches the `eth0` address already seen in `ip a` above, `172.23.15.152`. `ip route` shows exactly one route: everything leaves through `eth0` via the WSL virtual gateway `172.23.0.1`, since this is a single-NIC WSL instance, not a machine with multiple real network paths to choose between. The last line in `/etc/hosts` is a leftover from the Ingress work in [module 11](../11-kubernetes-ingress-configmaps-secrets/README.md), genuinely still on this machine, not edited out for this screenshot.
+
+`tracepath` and `telnet` are also not installed in this environment, the same honest gap as `traceroute`, `nslookup`, and `dig` above, needing the same `sudo apt install` this non-interactive shell cannot run.
+
+### Screenshot (host identity and routing)
+![hostname, whoami, hostname -I, ip route, and /etc/hosts](screenshots/02_host_identity_and_routing.png)

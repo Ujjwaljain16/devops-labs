@@ -249,3 +249,47 @@ It is worth noting for next session that I did not write a ReplicaSet or Deploym
 
 ### Screenshot Verification (Hello Minikube - Live Service Response)
 ![Hello Minikube Service Response](screenshots/02_hello_minikube_service_response.png)
+
+#### Step 4: Labels, `kubectl exec`, and actually cleaning up
+
+Every Pod created through a Deployment carries labels automatically; I checked them rather than assuming, then used `kubectl exec` to run real commands inside the container itself, not just observe it from the outside through `logs`:
+
+```bash
+kubectl get pods --show-labels -l app=hello-node
+kubectl exec hello-node-6f8b554fb7-d2fdw -- hostname
+kubectl exec hello-node-6f8b554fb7-d2fdw -- whoami
+kubectl exec hello-node-6f8b554fb7-d2fdw -- ps
+```
+```text
+NAME                          READY   STATUS    RESTARTS   AGE   LABELS
+hello-node-6f8b554fb7-d2fdw   1/1     Running   0          9s    app=hello-node,pod-template-hash=6f8b554fb7
+
+hello-node-6f8b554fb7-d2fdw
+root
+
+PID   USER     TIME  COMMAND
+    1 root      0:00 /agnhost netexec --http-port=8080
+   27 root      0:00 ps
+```
+The Pod's hostname inside the container is its own Pod name, a Kubernetes convention, and the container runs as `root` since the `agnhost` test image does not define a non-root user. `ps` shows exactly two processes: PID 1 is the actual application (`/agnhost netexec`), and PID 27 is the `ps` command itself, running inside the same container namespace. `pod-template-hash` is the label the ReplicaSet controller adds automatically to tell which Pods belong to which version of the Pod template, the same mechanism a rolling update relies on.
+
+Finally, I cleaned up rather than leaving the Deployment running indefinitely:
+
+```bash
+kubectl delete deployment hello-node
+kubectl get pods -l app=hello-node
+kubectl get deployments
+```
+```text
+deployment.apps "hello-node" deleted from default namespace
+
+NAME                          READY   STATUS        RESTARTS   AGE
+hello-node-6f8b554fb7-d2fdw   1/1     Terminating   0          16s
+
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+(hello-node no longer listed)
+```
+Deleting the Deployment deletes the ReplicaSet it owns, which deletes the Pod it owns, the same ownership chain noted above, just running in reverse. The Pod shows `Terminating` for a moment rather than disappearing instantly, since the container gets a grace period to shut down cleanly.
+
+### Screenshot Verification (labels, exec, cleanup)
+![Labels, kubectl exec, and cleanup](screenshots/03_exec_labels_cleanup.png)

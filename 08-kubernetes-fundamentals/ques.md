@@ -25,3 +25,5 @@ Docker and Docker Compose are not covered again here, since they were already ha
 - [x] `minikube status` confirms the local cluster is healthy
 - [x] Looked at the Hello Minikube docs
 - [x] Ran the Hello Minikube "Deploy an application" example end-to-end, including hitting the running service with curl
+- [x] Checked Pod labels, used `kubectl exec` to run real commands inside the container, and cleaned up the Deployment afterward rather than leaving it running
+- [x] Screenshots: cluster verification, live service response, labels/exec/cleanup
