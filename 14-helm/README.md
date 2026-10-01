@@ -287,3 +287,11 @@ This brought the deployment back to exactly 2 Pods on `1.26-alpine`, matching re
 `helm list`, `helm history myapp-release` (all 4 revisions including the rollback), and the final Pod state, with 2 Running on `1.26-alpine`, matching revision 4:
 
 ![Helm history and final Pod state](screenshots/01_helm_history_and_pods.png)
+
+All 11 Task 1 commands run fresh, through a throwaway `test-release` so the real `myapp-release` above was never touched: `helm install`, `helm list`, `helm status`, `helm get values`, `helm repo add`, `helm search repo`, and `helm uninstall`, including the real `"bitnami" already exists with the same configuration, skipping` line since the repo was already added in an earlier session:
+
+![Task 1 commands against a throwaway release](screenshots/02_task1_commands.png)
+
+Re-confirming Task 2's real revision history on `myapp-release` itself, independent of the original run:
+
+![Task 2 history and status, re-confirmed](screenshots/03_task2_history_and_status.png)
