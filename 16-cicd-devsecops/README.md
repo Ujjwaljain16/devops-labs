@@ -192,6 +192,18 @@ curl -s -X POST http://localhost:5001/api/calculate -H 'Content-Type: applicatio
 
 This completes the full chain from the doc's Expected Flow: **Code -> Build -> Unit Test -> SAST -> SCA -> Secret Scan -> Docker Build -> Container Image Scan -> Security Gate -> Push Image -> Deploy to Kubernetes**, with every arrow genuinely executed, not narrated.
 
+### Screenshot Verification (Kubernetes deployment)
+```text
+$ kubectl get pods -l app=devsecops-demo -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[0].image}{"\n"}{end}'
+devsecops-demo-7bd888dfd8-mvsp6   ghcr.io/ujjwaljain16/devops-labs-devsecops-demo:latest
+devsecops-demo-7bd888dfd8-nmqkx   ghcr.io/ujjwaljain16/devops-labs-devsecops-demo:latest
+$ kubectl port-forward svc/devsecops-demo 5001:5001 &
+Forwarding from 127.0.0.1:5001 -> 5001
+Forwarding from [::1]:5001 -> 5001
+```
+![Real curl responses from the running deployment](screenshots/05_k8s_deployment_verification.png)
+Both Pods genuinely running the exact image CI built and pushed, and real responses from `/health` and `/api/calculate` through the port-forward, captured in a second terminal while the forward stayed open in the first.
+
 ## Screenshots
 
 Run 1: Unit Test and SAST pass, then SCA (pip-audit) genuinely fails on the real Flask CVE:

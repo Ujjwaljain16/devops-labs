@@ -51,4 +51,4 @@ The same situation as module 15 applies to pushing to GitHub: everything is buil
 - [x] Push to GHCR - [run 36577998208](https://github.com/Ujjwaljain16/devops-labs/actions/runs/36577998208), image public, confirmed by actually pulling it
 - [x] Kubernetes manifests - applied for real to live Minikube, confirmed running the actual pushed image, confirmed serving real traffic via port-forward
 - [x] Successful pipeline output documented (4 runs: 3 real failures + fixes, then green)
-- [x] Screenshots: all four runs (SCA failure, Trivy version failure, Gitleaks failure, final all-green), captured from the real Actions UI
+- [x] Screenshots: all four runs (SCA failure, Trivy version failure, Gitleaks failure, final all-green), captured from the real Actions UI, plus real pod/image confirmation and live curl responses from the Kubernetes deployment
