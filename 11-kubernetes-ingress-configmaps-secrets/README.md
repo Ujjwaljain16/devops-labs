@@ -262,6 +262,12 @@ POSTGRES_USER: yatri_admin
 POSTGRES_PASSWORD: set (hidden)
 ```
 
+### Screenshot Verification (`run-demo.sh` creating the stack, then env injection)
+![Task 6 run-demo.sh create and env injection](screenshots/07_task6_run_demo_create.png)
+![Task 6 env values, tail of the same run](screenshots/07b_task6_env_and_rerun_unchanged.png)
+![Task 6 re-run showing every object unchanged, then env values again](screenshots/07c_task6_rerun_unchanged_and_env.png)
+I ran `run-demo.sh` a second time right after the first, on purpose, to show that `kubectl apply` is idempotent: every object reports `unchanged` rather than erroring or recreating anything, and the injected environment is identical both times.
+
 ---
 
 # Part B - Ingress
@@ -409,6 +415,10 @@ http_code=404
 ```
 The `path: /orders/42` line is proof that the rewrite works: the client asked for `/api/orders/42`, and the backend saw `/orders/42`. A request with the wrong `Host` receives the controller's own 404, since the Ingress only answers for the hostname declared in its rules.
 
+### Screenshot Verification (path-based routing, real traffic through the port-forward)
+![Task 10 path-based routing through the Ingress](screenshots/08_task10_path_based_routing.png)
+All three requests going through `kubectl port-forward`'s own connection log (`Handling connection for 8080`): the frontend title on `/`, the backend's JSON-ish report on `/api/`, and `path: /orders/42` on `/api/orders/42`, confirming the rewrite.
+
 ## Task 11: Host-based routing (virtual hosts)
 
 Two tiny nginx apps (`03-ingress/campus-apps.yaml`), one per hostname, sit behind one Ingress (`03-ingress/ingress-host.yaml`). They share the same IP and the same port, with routing decided by the `Host` header alone:
@@ -427,6 +437,10 @@ CAMPUS API
 http_code=404
 ```
 This is the whole trick behind hosting many sites/services on one IP: the client says which name it wants, and the controller picks the backend. Nothing else changed between those two requests.
+
+### Screenshot Verification (host-based routing, and the same Ingress-not-ready-yet race from Task 14)
+![Task 11 host-based routing, both apps applied together](screenshots/09_task11_host_based_routing.png)
+This screenshot shows `campus-apps.yaml` and `ingress-host.yaml` applied together, then both curls run immediately after with only a 3 second `sleep` in between, and both came back `404 Not Found` from the NGINX controller's own default backend rather than the expected titles. This is the exact same race condition already documented in Task 14: the Ingress object existed in etcd, but the controller had not yet reloaded its configuration to actually route `portal.campus.local` and `api.campus.local`. I left this real result in rather than re-running it with a longer wait, since it is genuine evidence of the same timing behavior, not a mistake to hide. The prose above describes the eventual, settled routing once the controller catches up, which Task 12's screenshot below confirms with a successful `describe`.
 
 ## Task 12: Hybrid routing - host *and* path in one Ingress (`03-ingress/ingress-tls.yaml`)
 
@@ -461,6 +475,10 @@ api    /api     -> CAMPUS API
 api    /        -> http_code=404
 ```
 The last line matters as much as the others: `api.campus.local` has no rule for `/`, so the result is a 404 rather than a fall-through to the portal. Hosts remain isolated from one another.
+
+### Screenshot Verification (deleting the conflicting host-only Ingress, then the hybrid one)
+![Task 12 delete, re-apply, and describe the hybrid Ingress](screenshots/10_task12_hybrid_tls_describe.png)
+This run deleted `campus-ingress-host` first, then applied `ingress-tls.yaml` directly, so it did not need to repeat the admission webhook rejection already captured earlier (same error text is quoted above, from an earlier real run against the same conflict). The `describe` output here is the proof that matters for this screenshot: `campus-ingress-tls` created cleanly once the conflicting Ingress was gone, with the TLS binding and both hosts' routing tables (`/status` and `/` for the portal host, `/api` for the API host) exactly as the prose above describes.
 
 ## Task 13: TLS termination
 
