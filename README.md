@@ -91,7 +91,11 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── Dockerfile, k8s/                 # Real image pushed to GHCR, deployed to live Minikube, verified serving traffic
 │   ├── ques.md                          # Assignment breakdown, tool substitutions, why deploy is manual not CI
 │   └── README.md                        # 4 real pipeline runs incl. a genuine CVE catch (SCA) and a real Gitleaks scoping call
-├── 17-terraform-infrastructure-as-code/ # TODO — Session 18: Terraform S3 demo (needs AWS)
+├── 17-terraform-infrastructure-as-code/
+│   ├── terraform-s3-demo/               # Real S3 bucket genuinely created, verified via AWS CLI, then destroyed and verified gone (404)
+│   ├── aws-services/                    # 5 research README.md files: IAM, EC2, S3, VPC, DynamoDB & RDS
+│   ├── ques.md                          # Assignment breakdown
+│   └── README.md                        # Module overview, the AWS access key troubleshooting story
 ├── 18-cloud-terraform-in-action/        # TODO — Session 19: end-to-end Terraform cloud infra (needs AWS)
 ├── 19-monitoring-observability-gitops/
 │   ├── gitops-app/                      # Real Argo CD Application, synced from this repo, self-heal proven with real events
@@ -116,6 +120,6 @@ This repository contains the complete laboratory implementations, source code, c
 └── GAPS.md                              # What's left: modules 17/18/20 blocked on AWS creds, module 12's 2 open items
 ```
 
-**Current status:** 17/20 modules done. See [GAPS.md](GAPS.md) for exactly what's outstanding and why.
+**Current status:** 18/20 modules done. See [GAPS.md](GAPS.md) for exactly what's outstanding and why.
 
 ---
