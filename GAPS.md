@@ -1,40 +1,29 @@
-# Gaps — what's left across the whole repo
+# Gaps: what's left across the whole repo
 
 Consolidated view of everything still open, across all 20 modules. Per-module `gaps.md` files (currently just [12-kubernetes-storage-hpa-probes/gaps.md](12-kubernetes-storage-hpa-probes/gaps.md)) hold module-specific detail; this file is the project-wide summary.
 
-**Status: 17/20 modules done.** Modules 01-16 and 19 are complete, genuinely executed, and pushed. What's left:
+**Status: 18/20 modules done.** Modules 01-17 and 19 are complete, genuinely executed, and pushed. What's left:
 
 ---
 
-## Modules 17, 18, 20 — blocked on AWS credentials
+## Modules 18 and 20: blocked on nothing now except time, AWS itself is unblocked
 
-**17 (Terraform & Infrastructure as Code)** and **18 (Cloud & Terraform in Action)** both explicitly require provisioning real AWS infrastructure via Terraform (S3 bucket, then a fuller VPC-based setup). **20 (Final DevOps Project)** is the capstone tying every module together, and its deliverable list also explicitly requires a `terraform/` folder and "Use Terraform to provision the required cloud infrastructure" — checked the doc directly to confirm this isn't optional or skippable the way module 19 turned out to be AWS-independent.
+AWS was the long-standing blocker here. It is resolved: a working IAM access key (`terraform-devops-labs` user, account `189393508581`) is configured in WSL, and module 17 proved the whole toolchain end to end with a real S3 bucket (created, verified via the AWS CLI, destroyed, verified gone with a real 404). Both the AWS CLI and Terraform are installed as user-local binaries, no sudo needed.
 
-None of these three can start until there's a working AWS credential.
+**18 (Cloud & Terraform in Action)** needs a fuller VPC-based infrastructure build using the same now-working credential. **20 (Final DevOps Project)** is the capstone tying every module together, and its deliverable list also requires a `terraform/` folder provisioning real cloud infrastructure. Neither has been started yet; both are now just a matter of building them the same way module 17 was built.
 
-**Current state (2026-09-29):**
-- AWS CLI v2.37.5 is already installed locally (`~/bin/aws` in WSL, user-local install, no sudo needed) — ready to go the moment credentials work.
-- An AWS account was created, but its first access key (`AKIAUNUOAS4L2ZIAA2EA`) fails with `InvalidClientTokenId` — AWS doesn't recognize that key ID at all, meaning it likely never actually got created (a click didn't register) or was deleted/deactivated somewhere along the way.
-
-**Needed to unblock:** a fresh IAM access key that actually authenticates. Steps (from the IAM console, under the user created for this — e.g. `terraform-devops-labs`):
-1. Security credentials tab → check whether `AKIAUNUOAS4L2ZIAA2EA` is even listed. If not, that confirms it never existed.
-2. Delete any stale/broken key shown there.
-3. Create a new access key (choose "Command Line Interface (CLI)" as the use case) and copy **both** the Access Key ID and Secret Access Key from that same page before navigating away.
-4. Run `aws configure` in WSL with the fresh pair (or hand them over and it'll be done from here).
-5. I'll verify with a read-only `aws sts get-caller-identity` before touching Terraform at all.
-
-**Security note:** the first key's secret was pasted directly into chat during troubleshooting. Once a working key is in place and 17/18/20 are done, that first key should be deleted/rotated in IAM regardless of whether it ever worked — a credential that's been typed into a chat log shouldn't stay active.
+**Security note, still open:** the AWS secret access key currently in use was pasted directly into chat twice during troubleshooting (once for the first, non-working key, once for the working second one). Once 18 and 20 are done, that key should be rotated in IAM (deactivate it, create a fresh one, update `~/.aws/credentials`) regardless of whether anything went wrong, since a credential that has been typed into a chat log should not stay active indefinitely. The same applies to real personal phone numbers that appeared in one of module 01's screenshots; those were redacted before committing, but the key rotation is still outstanding.
 
 ---
 
-## Module 12 — two open items
+## Module 12: two open items
 
 See [12-kubernetes-storage-hpa-probes/gaps.md](12-kubernetes-storage-hpa-probes/gaps.md) for full detail. Short version:
-1. **Task 3 Mini Project** — the tracking doc's Session 13 tab gives no brief at all, just "complete the mini project provided for Session 13" with nothing attached. Needs whatever handout the instructor shared live.
-2. **Dedicated Probes coverage** — the session is titled "...HPA & Probes" but the doc's actual task list never breaks out a Probes task. Needs confirmation on whether module 09's existing liveness/readiness demos count as sufficient, or whether this session wants its own dedicated hands-on Probes work.
+1. **Task 3 Mini Project**: the tracking doc's Session 13 tab gives no brief at all, just "complete the mini project provided for Session 13" with nothing attached. Needs whatever handout the instructor shared live.
+2. **Dedicated Probes coverage**: the session is titled "...HPA & Probes" but the doc's actual task list never breaks out a Probes task. Needs confirmation on whether module 09's existing liveness/readiness demos count as sufficient, or whether this session wants its own dedicated hands-on Probes work.
 
 ---
 
 ## Everything else
 
-No other open items. Modules 01-11, 13, 14, 15, 16, 19 are complete with no outstanding questions — see each module's own `ques.md` completion checklist for what was verified.
+No other open items. Modules 01-11, 13, 14, 15, 16, 17, 19 are complete with no outstanding questions; see each module's own `ques.md` completion checklist for what was verified.
