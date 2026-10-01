@@ -1,0 +1,8 @@
+aws_region        = "ap-south-1"
+availability_zone = "ap-south-1a"
+vpc_cidr          = "10.0.0.0/16"
+subnet_cidr       = "10.0.1.0/24"
+my_ip             = "202.131.133.38/32"
+instance_type     = "t3.micro"
+bucket_name       = "ujjwal-jain-24bcs10173-devops-labs-cloud-demo"
+environment       = "learning"

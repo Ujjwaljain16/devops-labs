@@ -96,7 +96,12 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── aws-services/                    # 5 research README.md files: IAM, EC2, S3, VPC, DynamoDB & RDS
 │   ├── ques.md                          # Assignment breakdown
 │   └── README.md                        # Module overview, the AWS access key troubleshooting story
-├── 18-cloud-terraform-in-action/        # TODO — Session 19: end-to-end Terraform cloud infra (needs AWS)
+├── 18-cloud-terraform-in-action/
+│   ├── terraform/                       # VPC, subnet, IGW, route table, security group, EC2 (t3.micro), S3 — real resources, created then destroyed
+│   ├── screenshots/                     # Real terminal verification screenshot from my own WSL session
+│   ├── architecture-diagram.svg         # VPC/subnet/SG/EC2/S3 architecture diagram
+│   ├── ques.md                          # Assignment breakdown, incl. the t2.micro vs t3.micro free-tier fix
+│   └── README.md                        # Full real workflow: init/fmt/validate/plan/apply/destroy, independent verification both ways
 ├── 19-monitoring-observability-gitops/
 │   ├── gitops-app/                      # Real Argo CD Application, synced from this repo, self-heal proven with real events
 │   ├── monitoring/                      # Prometheus alert rules + Grafana dashboard, both genuinely deployed & verified
@@ -120,6 +125,6 @@ This repository contains the complete laboratory implementations, source code, c
 └── GAPS.md                              # What's left: modules 17/18/20 blocked on AWS creds, module 12's 2 open items
 ```
 
-**Current status:** 18/20 modules done. See [GAPS.md](GAPS.md) for exactly what's outstanding and why.
+**Current status:** 19/20 modules done. See [GAPS.md](GAPS.md) for exactly what's outstanding and why.
 
 ---

@@ -1,0 +1,58 @@
+<svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" font-family="monospace" font-size="14">
+  <rect x="0" y="0" width="900" height="480" fill="#ffffff"/>
+
+  <!-- AWS account boundary -->
+  <rect x="20" y="20" width="860" height="440" fill="none" stroke="#232f3e" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="35" y="45" fill="#232f3e" font-weight="bold">AWS Account 189393508581 (ap-south-1)</text>
+
+  <!-- VPC -->
+  <rect x="50" y="70" width="520" height="340" fill="#f2f8ff" stroke="#146eb4" stroke-width="2"/>
+  <text x="65" y="95" fill="#146eb4" font-weight="bold">VPC 10.0.0.0/16</text>
+
+  <!-- Internet Gateway -->
+  <rect x="330" y="110" width="200" height="45" fill="#ffffff" stroke="#146eb4" stroke-width="2"/>
+  <text x="345" y="138" fill="#232f3e">Internet Gateway</text>
+
+  <!-- Route table -->
+  <rect x="330" y="175" width="200" height="45" fill="#ffffff" stroke="#146eb4" stroke-width="2"/>
+  <text x="345" y="203" fill="#232f3e">Route Table (0.0.0.0/0)</text>
+
+  <!-- Public subnet -->
+  <rect x="80" y="235" width="460" height="150" fill="#eafaf1" stroke="#1d8102" stroke-width="2"/>
+  <text x="95" y="258" fill="#1d8102" font-weight="bold">Public Subnet 10.0.1.0/24 (ap-south-1a)</text>
+
+  <!-- Security group -->
+  <rect x="110" y="275" width="400" height="90" fill="#ffffff" stroke="#d9534f" stroke-width="2"/>
+  <text x="125" y="298" fill="#d9534f" font-weight="bold">Security Group</text>
+  <text x="125" y="318" fill="#232f3e" font-size="12">ingress 22, 80 from my IP /32 only</text>
+  <text x="125" y="335" fill="#232f3e" font-size="12">egress all</text>
+
+  <!-- EC2 inside SG -->
+  <rect x="340" y="285" width="150" height="65" fill="#fff7e6" stroke="#b36b00" stroke-width="2"/>
+  <text x="355" y="312" fill="#b36b00" font-weight="bold">EC2</text>
+  <text x="355" y="330" fill="#232f3e" font-size="12">t3.micro</text>
+  <text x="355" y="345" fill="#232f3e" font-size="12">nginx:80</text>
+
+  <!-- S3 bucket outside VPC, regional service -->
+  <rect x="640" y="200" width="180" height="80" fill="#fff0f5" stroke="#9b2fae" stroke-width="2"/>
+  <text x="655" y="228" fill="#9b2fae" font-weight="bold">S3 Bucket</text>
+  <text x="655" y="248" fill="#232f3e" font-size="12">versioned,</text>
+  <text x="655" y="264" fill="#232f3e" font-size="12">public access blocked</text>
+
+  <!-- Internet icon -->
+  <circle cx="430" cy="430" r="22" fill="#ffffff" stroke="#232f3e" stroke-width="2"/>
+  <text x="408" y="435" fill="#232f3e" font-size="12">Internet</text>
+
+  <!-- arrows -->
+  <line x1="430" y1="155" x2="430" y2="175" stroke="#146eb4" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="430" y1="220" x2="430" y2="235" stroke="#146eb4" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="430" y1="408" x2="430" y2="385" stroke="#232f3e" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="570" y1="240" x2="640" y2="240" stroke="#9b2fae" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="572" y="232" fill="#9b2fae" font-size="11">regional, not VPC-bound</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L6,3 z" fill="#232f3e"/>
+    </marker>
+  </defs>
+</svg>
