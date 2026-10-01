@@ -28,4 +28,4 @@ See [12-kubernetes-storage-hpa-probes/gaps.md](12-kubernetes-storage-hpa-probes/
 
 ## Everything else
 
-No other open items. Modules 01-11, 13, 14, 15, 16, 17, 18, 19 are complete with no outstanding questions; see each module's own `ques.md` completion checklist for what was verified.
+No other open items. Modules 01-11, 13, 14, 15, 16, 17, 18 are complete with no outstanding questions; see each module's own `ques.md` completion checklist for what was verified.

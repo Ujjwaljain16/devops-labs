@@ -280,3 +280,19 @@ KUBERNETES -> actual state
 Argo CD Application `Synced`/`Healthy`, the full monitoring stack Running, and the GitOps-managed Deployment at its final `3/3` state, captured after self-healing:
 
 ![Argo CD status, monitoring pods, and final deployment state](screenshots/01_argocd_and_monitoring.png)
+
+### A second real screenshot pass
+
+The original `session19` profile was deleted after this module was finished, to free disk space on this machine. For a later submission-readiness pass, I rebuilt the entire stack from scratch on a fresh `session19` profile, using the exact same real files already in this folder (`monitoring/prometheus-values.yaml`, `monitoring/grafana-dashboard.json`, `gitops-app/`), and re-ran the real alert and GitOps lifecycles end to end, not just redeployed the stack and left it idle.
+
+Alert rules loaded and `inactive` on a completely fresh Prometheus install:
+![Alert rules freshly loaded, both inactive](screenshots/02_alert_rules_inactive.png)
+
+I then broke `node-exporter` the same way as the original run (a `nodeSelector` patch that never matches) and watched the real transition: `inactive` at t=0, `pending` by t=20s, `firing` by t=80s, confirmed in Alertmanager's own `/api/v2/alerts` with a real `startsAt` timestamp. Restoring node-exporter needed one extra real fix this time: a plain strategic-merge `kubectl patch` only adds keys to `nodeSelector`, it does not remove them, so the fake `demo-disable` key stayed behind until I used `kubectl patch --type=json` with an explicit `remove` operation. Once removed, the alert genuinely resolved: `firing` for about a minute while waiting on the next evaluation cycle, then `inactive`, and Alertmanager's `/api/v2/alerts` returned `[]`.
+
+Argo CD, installed fresh with the same `--server-side --force-conflicts` fix as the original (the CRD-size issue did not reproduce this time, which can happen depending on which Argo CD `stable` build is current when the manifest is fetched), synced the real `gitops-app/` from GitHub immediately to `3/3`, since `replicas: 3` was already the committed state from the original run. I re-ran the self-healing demo instead of the initial-sync demo: `kubectl scale --replicas=1`, then polled the Deployment, which was already back to `2/3` within 10 seconds and fully `3/3` within 20, with the same drift-detected-and-corrected event trail as the original (`Synced -> OutOfSync -> Synced`, `Healthy -> Progressing -> Healthy`) confirmed via `kubectl describe application`.
+
+Final composite state after both real lifecycles, independent of the original run:
+![Final composite state, second pass](screenshots/03_final_composite_state.png)
+
+The entire `session19` profile was deleted again immediately after capturing this, consistent with the free-tier-style discipline used for the AWS modules: nothing stays running just to look impressive later.

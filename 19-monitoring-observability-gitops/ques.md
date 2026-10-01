@@ -34,4 +34,4 @@ Pushing the GitOps manifests to GitHub did not trigger any CI workflow or publis
 - [x] Task 1: alerts, full real lifecycle (inactive, pending, firing in both Prometheus and Alertmanager, then resolved), including a genuine `up==0` vs `absent()` issue found and fixed, not just a static rule
 - [x] Task 2: observability documentation (three pillars, why it matters, common tools, Kubernetes observability), honest about the one gap (no real tracing backend was stood up)
 - [x] Task 3: full Argo CD GitOps demo, install (including a real CRD-size apply issue found and fixed), sync, verify, replica change via a real git push, watched reconciliation, self-healing demonstrated with real event log proof
-- [x] Screenshots: Argo CD Synced/Healthy, monitoring pods Running, final 3/3 deployment state
+- [x] Screenshots: Argo CD Synced/Healthy, monitoring pods Running, final 3/3 deployment state, plus a second real pass rebuilding the whole stack from scratch to capture the alert rules freshly loaded and the final composite state again, independently reproducing both the alert and self-healing lifecycles
