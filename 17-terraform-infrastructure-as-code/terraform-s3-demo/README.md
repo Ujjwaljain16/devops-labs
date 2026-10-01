@@ -227,6 +227,11 @@ An error occurred (404) when calling the HeadBucket operation: Not Found
 
 A real 404 from AWS, not an assumption. The complete lifecycle, create, verify it exists, destroy, verify it is really gone, all happened against a real AWS account, not a simulation.
 
-## Screenshot
+I later ran an independent sanity check from my own terminal, well after the destroy above:
 
-*(pending; see the checkpoint note)*
+```
+$ aws s3 ls
+$
+```
+
+No output: the bucket does not exist, confirming the earlier automated destroy and verification. The doc's Session 18 tab does not list screenshots as a required deliverable for this module, only the documented workflow above, so no screenshot is included here.

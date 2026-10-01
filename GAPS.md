@@ -12,6 +12,8 @@ AWS was the long-standing blocker here. It is resolved: a working IAM access key
 
 **18 (Cloud & Terraform in Action)** needs a fuller VPC-based infrastructure build using the same now-working credential. **20 (Final DevOps Project)** is the capstone tying every module together, and its deliverable list also requires a `terraform/` folder provisioning real cloud infrastructure. Neither has been started yet; both are now just a matter of building them the same way module 17 was built.
 
+**Cost/safety rule for all remaining AWS work (18 and 20):** everything must stay strictly within the AWS free tier. Only `t2.micro`/`t3.micro` for any EC2 instance, S3, and plain VPC/subnets/route tables/Internet Gateway (all genuinely $0). No NAT Gateway (the most common source of a surprise bill, not free-tier covered). Every `terraform apply` is immediately followed by a `terraform destroy` once evidence is captured, the same create-verify-destroy-verify discipline already proven in module 17. Nothing is left running between sessions.
+
 **Security note, still open:** the AWS secret access key currently in use was pasted directly into chat twice during troubleshooting (once for the first, non-working key, once for the working second one). Once 18 and 20 are done, that key should be rotated in IAM (deactivate it, create a fresh one, update `~/.aws/credentials`) regardless of whether anything went wrong, since a credential that has been typed into a chat log should not stay active indefinitely. The same applies to real personal phone numbers that appeared in one of module 01's screenshots; those were redacted before committing, but the key rotation is still outstanding.
 
 ---

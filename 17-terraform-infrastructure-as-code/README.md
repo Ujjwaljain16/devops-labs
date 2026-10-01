@@ -11,6 +11,4 @@ See [ques.md](ques.md) for the exact task breakdown. This module has two parts, 
 
 This was the first module in this repo needing real AWS infrastructure, and it stayed blocked for a while on getting a working credential: the first IAM access key created never actually authenticated (`InvalidClientTokenId`), which turned out to mean it had never really been created in the first place; a freshly generated second key worked immediately. Both the AWS CLI and Terraform were installed as user-local binaries in WSL, no `sudo` needed, the same pattern already used for Helm, Trivy, and the rest of this repo's tooling.
 
-## Screenshots
-
-*(pending; see the checkpoint note)*
+Unlike most other modules, the doc's Session 18 tab does not list screenshots as a deliverable here, only "document the complete workflow in README.md." Every command in this module was run directly against a real AWS account rather than relayed through a screenshot, so the real terminal output captured in [terraform-s3-demo/README.md](terraform-s3-demo/README.md) is the primary evidence.
