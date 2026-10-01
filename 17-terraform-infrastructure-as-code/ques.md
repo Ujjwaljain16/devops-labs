@@ -23,4 +23,4 @@ This was the first module needing real AWS infrastructure, and it was blocked fo
 - [x] Task 1: real Terraform project, real S3 bucket created and verified independently via the AWS CLI (not just Terraform's own state)
 - [x] Task 1: full workflow documented with real output (init, fmt, validate, plan, apply, show, output, destroy), including the final destroy verified with a real 404 from AWS
 - [x] Task 2: five AWS service research README.md files (IAM, EC2, S3, VPC, DynamoDB & RDS), several tied to the real resources from Task 1 rather than written abstractly
-- [x] No screenshots required by the doc for this session; real captured command output serves as evidence instead
+- [x] Screenshots: 5 real screenshots from my own terminal covering init, plan, apply, destroy-plan, and destroy-complete (terraform-s3-demo/screenshots/)

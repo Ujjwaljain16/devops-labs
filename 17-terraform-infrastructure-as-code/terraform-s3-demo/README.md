@@ -227,11 +227,14 @@ An error occurred (404) when calling the HeadBucket operation: Not Found
 
 A real 404 from AWS, not an assumption. The complete lifecycle, create, verify it exists, destroy, verify it is really gone, all happened against a real AWS account, not a simulation.
 
-I later ran an independent sanity check from my own terminal, well after the destroy above:
+## Screenshots
 
-```
-$ aws s3 ls
-$
-```
+I re-ran this same project from my own WSL terminal afterward to capture real screenshots of the workflow, the same bucket, genuinely created and destroyed a second time.
 
-No output: the bucket does not exist, confirming the earlier automated destroy and verification. The doc's Session 18 tab does not list screenshots as a required deliverable for this module, only the documented workflow above, so no screenshot is included here.
+- [screenshots/01-init-plan.png](screenshots/01-init-plan.png): `terraform init` succeeding, `terraform plan` starting
+- [screenshots/02-plan-detail.png](screenshots/02-plan-detail.png): the full reviewed plan, 3 resources to add
+- [screenshots/03-apply-output.png](screenshots/03-apply-output.png): plan saved, `terraform apply tfplan` creating all 3 resources, real outputs printed (bucket ARN, name, region)
+- [screenshots/04-destroy-plan.png](screenshots/04-destroy-plan.png): `terraform plan -destroy`, the full reviewed destroy plan, 3 resources to destroy
+- [screenshots/05-destroy-complete.png](screenshots/05-destroy-complete.png): `terraform apply tfplan-destroy` completing, all 3 resources destroyed
+
+I verified the bucket was gone again with `aws s3 ls | grep devops-labs-s3-demo` immediately after, which printed nothing.
