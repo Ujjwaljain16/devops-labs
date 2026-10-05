@@ -30,7 +30,7 @@ The folder layout in the doc is a suggestion for a single folder, and my reposit
 
 ## 3. My completion checklist
 
-Each line says what exists. Items marked as open are real gaps against the doc, and I list them here instead of hiding them.
+Each line says what exists. When I first compared the project with this list I found five gaps, and I closed all of them afterwards, so I keep the history here instead of hiding it.
 
 - [x] Application, Git, GitHub: original FastAPI, React and PostgreSQL application, public repository, more than thirty meaningful commits
 - [x] CI pipeline with build and test: pytest with a coverage floor, PostgreSQL integration tests, frontend tests and build
@@ -43,9 +43,11 @@ Each line says what exists. Items marked as open are real gaps against the doc, 
 - [x] Monitoring: Prometheus and Grafana with a provisioned dashboard and live application metrics
 - [x] Final troubleshooting challenge: four deliberate failures, each documented with identify, investigate, root cause, fix and verify
 - [x] Screenshots and a README with real transcripts
-- [ ] ConfigMap: the chart passes its non-secret settings as plain environment variables and has no ConfigMap yet. I covered ConfigMaps in module 11, but the capstone does not use one.
-- [ ] SCA for the Python dependencies: only the frontend is audited in the pipeline. I used `pip-audit` for this in module 16, and the capstone pipeline does not run it yet.
-- [ ] Logs: the application writes to standard output and I used `kubectl logs` in the troubleshooting labs, but there is no log collection in the monitoring stack.
-- [ ] GitOps: there is no Argo CD application and no `gitops/` folder in the capstone. I built a real Argo CD workflow in module 19, but it is not part of this project.
-- [ ] README sections named by the doc: it has no section titled "Technologies used", "GitOps" or "Lessons learned" yet.
-- [ ] The doc's exact folder names (`security/`, `gitops/`, `docker/`, `kubernetes/`) are not present as folders, because the repository is organised differently.
+- [x] ConfigMap: the non-secret settings are rendered into a ConfigMap and loaded with `envFrom`, and a checksum annotation restarts the pods when it changes. I proved the whole path through Git: a committed change of `LOG_LEVEL` reached the ConfigMap within 8 seconds and rolled the pods.
+- [x] SCA for the Python dependencies: `pip-audit` runs as a pipeline gate next to `npm audit`, and it reports no known vulnerabilities in the pinned requirements.
+- [x] Logs: the application writes structured JSON logs, Grafana Alloy collects them, Loki stores them, and Grafana shows a log stream and a conflicts-per-layer panel. After 105 deliberate double bookings Loki counted exactly 105 rejected-booking lines.
+- [x] GitOps: an Argo CD Application keeps the cluster in line with `gitops/values.yaml`. I promoted a build by commit, changed the configuration by commit, and watched Argo CD undo a manual ConfigMap edit and a deleted Service within 4 seconds. The demonstration also found and fixed two real problems, a migration Job that cannot be patched and a sync that failed because the autoscaler had no metrics for a minute.
+- [x] README sections named by the doc: the project README now has Technologies used, GitOps and Lessons learned.
+- [x] The doc's folder names: `gitops/` and `security/` now exist in the project repository. The other folders of the doc map to `backend/` and `frontend/`, the Dockerfiles, `k8s/` and `helm/`, as the table in [README.md](README.md) shows.
+
+I also re-ran the cleanup after the GitOps work: the local cluster was deleted again, no Docker leftovers of the project remain, and AWS was checked again and was empty.

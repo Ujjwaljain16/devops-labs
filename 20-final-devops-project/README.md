@@ -16,12 +16,14 @@ The exact task breakdown, the way I reconciled the homework doc with the instruc
 CampusSlot is a room and lab booking service that guarantees that two confirmed bookings never overlap in the same room. I protect that rule in three layers (request validation, an application check and a PostgreSQL exclusion constraint), and I tested each layer. Around this small application I built the whole delivery chain:
 
 - **Application:** FastAPI backend, React frontend, PostgreSQL with Alembic migrations.
-- **Tests:** 42 backend tests, 4 PostgreSQL integration tests and 12 frontend tests, with a coverage floor of 85 percent.
+- **Tests:** 46 backend tests, 4 PostgreSQL integration tests and 12 frontend tests, with a coverage floor of 85 percent.
 - **Docker:** two multi-stage, non-root images, and a Compose stack with a persistent volume that I proved with a `down` and `up` cycle.
 - **CI/CD:** GitHub Actions with tests, secret scan, image build, Trivy gate, push to GHCR with commit SHA tags, and a Helm deployment to a kind cluster with a smoke test.
 - **Kubernetes and Helm:** a chart deployed on Minikube with ingress, a migration Job, an HPA that I watched scale from 2 to 5 replicas and back, and a restricted pod security namespace.
 - **Terraform:** a VPC and an EKS cluster, applied to a real AWS account and destroyed about 45 minutes later. A final check found nothing left in the region.
-- **Monitoring:** Prometheus and Grafana with a provisioned dashboard built from the application's own metrics.
+- **Monitoring and logs:** Prometheus, Grafana and Loki with a provisioned dashboard built from the application's own metrics and its structured JSON logs.
+- **GitOps:** Argo CD applies the desired state committed in `gitops/` and corrects manual drift within seconds.
+- **Configuration and security gates:** a ConfigMap for the settings and a Secret for the password, and Bandit, `pip-audit`, `npm audit`, Gitleaks and Trivy as pipeline gates.
 - **Troubleshooting:** four failures that I created on purpose and fixed.
 
 ## Where the doc's deliverables are
@@ -34,15 +36,15 @@ CampusSlot is a room and lab booking service that guarantees that two confirmed 
 | `helm/` | `helm/campusslot/` |
 | `terraform/` | `terraform/` |
 | `.github/workflows/` | `.github/workflows/ci-cd.yml` |
-| `security/` | No separate folder. The checks are jobs in the workflow, and the results are in `docs/evidence/` (Trivy reports, secret scan, Bandit, `npm audit`) |
+| `security/` | `security/` (what each gate checks and how to run it), with the gates themselves as jobs in the workflow and the results in `docs/evidence/` |
 | `monitoring/` | `monitoring/` |
-| `gitops/` | Not in the capstone, see the open items below |
+| `gitops/` | `gitops/` (the Argo CD Application, the desired state and the Argo CD values) |
 | Final troubleshooting challenge | `troubleshooting/` |
 | Screenshots | `docs/evidence/` |
 
-## Open items against the doc
+## Gaps that I found and closed
 
-I compared the project with the doc's Session 21 list line by line. Four things are not in the capstone yet: a ConfigMap in the chart, a Python dependency scan (SCA) in the pipeline, log collection, and a GitOps workflow. I covered each of them in an earlier module (11, 16 and 19), but I did not integrate them into this project, and [ques.md](ques.md) lists them as open instead of claiming them.
+I compared the project with the doc's Session 21 list line by line and found five gaps: no ConfigMap in the chart, no Python dependency scan, no log collection, no GitOps workflow, and missing README sections. I covered each of these in an earlier module (11, 16 and 19), but I had not integrated them into this project. I closed all five, and [ques.md](ques.md) records what I built and how I proved each one.
 
 ## Evidence
 
