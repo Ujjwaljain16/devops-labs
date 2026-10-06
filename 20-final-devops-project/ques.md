@@ -51,3 +51,8 @@ Each line says what exists. When I first compared the project with this list I f
 - [x] The doc's folder names: `gitops/` and `security/` now exist in the project repository. The other folders of the doc map to `backend/` and `frontend/`, the Dockerfiles, `k8s/` and `helm/`, as the table in [README.md](README.md) shows.
 
 I also re-ran the cleanup after the GitOps work: the local cluster was deleted again, no Docker leftovers of the project remain, and AWS was checked again and was empty.
+
+## 4. Beyond the checklist
+
+After the checklist was complete I spent the remaining time on the engineering habit behind it: measure, change one thing, measure again, and write down the trade-off. The results are in the project README under [Engineering decisions and results](https://github.com/Ujjwaljain16/campusslot#engineering-decisions-and-results). In short: DORA metrics from the real pipeline history, the pipeline median cut from 238 s to 148 s, branch protection with a proven rejected push, alert rules with a drill that fired and resolved, rollouts that lost requests before (8 of 8) and none after (0 of 6), a database outage that the alerts could not see until I fixed it, a backup that I restored with an identical checksum, signed image provenance verified before every deployment, and twelve short decision records. The same README lists what I planned and chose not to do, such as load-test tuning, a rollback drill and network policies.
+
