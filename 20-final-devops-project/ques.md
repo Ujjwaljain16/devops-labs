@@ -57,7 +57,7 @@ I also re-ran the cleanup after the GitOps work: the local cluster was deleted a
 After the checklist was complete I spent the remaining time on the engineering habit behind it: measure, change one thing, measure again, and write down the trade-off. The results are in the project README under [Engineering decisions and results](https://github.com/Ujjwaljain16/campusslot#engineering-decisions-and-results). In short:
 
 - **Pipeline and process:** DORA metrics from the real pipeline history, the pipeline median cut from 238 s to 148 s, branch protection with a proven rejected push, static analysis of the Terraform and the Helm chart, and signed image provenance verified before every deployment.
-- **Reliability:** alert rules with a drill that fired and resolved, rollouts that lost requests before (8 of 8) and none after, a database outage that the alerts could not see until I fixed it, and a backup that I restored with an identical checksum.
+- **Reliability:** alert rules with a drill that fired and resolved, rollouts that lost requests before (8 of 8) and none after, a database outage that the alerts could not see until I fixed it, a deliberately broken release that Helm rolled back by itself in 72 s while none of 4800 user requests failed, and a backup that I restored with an identical checksum.
 - **Scale and sizing:** with 200 thousand bookings, the overlap check read 2469 pages and now reads 30 (a range query and a GiST index). One pod went from 153 to 342 requests per second after I found it was throttled by its own CPU limit. Two other ideas (more worker processes and an ETag) did nothing, so I removed them. Sized from measurements, the same 60 requests per second needs 2 pods instead of 5.
 - **Decisions:** fourteen short decision records.
 
