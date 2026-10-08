@@ -9,6 +9,11 @@
 
 The exact task breakdown, the way I reconciled the homework doc with the instructor's grading file, and an honest checklist with the open items are in [ques.md](ques.md).
 
+**This folder holds two separate things for Session 21:**
+
+1. **My final project, CampusSlot** (below): an original application with its own repository. This is the capstone.
+2. **[`taskboard-compose/`](taskboard-compose/README.md)**: the separate Session 21 homework on the **instructor's TaskBoard reference app**. I ran it by hand, built its Dockerfiles, brought it up with Docker Compose and tested the API and UI, with real outputs and the problems I found along the way. The application code there is the instructor's, unchanged, and is not presented as my project.
+
 ---
 
 ## What I built

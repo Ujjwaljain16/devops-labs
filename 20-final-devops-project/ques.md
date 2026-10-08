@@ -28,6 +28,8 @@ I built the project as a separate public repository, not as a folder inside this
 
 The folder layout in the doc is a suggestion for a single folder, and my repository uses different names because the application has a backend and a frontend. The table in [README.md](README.md) maps every folder of the doc to its place in the project.
 
+A second, separate submission exists for this session: the homework of running the instructor's TaskBoard reference application (manual run, Dockerfiles, Docker Compose, API and UI testing). It is in [taskboard-compose/](taskboard-compose/README.md). Its application code is the instructor's, copied unchanged, which is why it is kept apart from the project above (the grading file gives a zero to a clone of TaskBoard submitted as the capstone, so the two must never be confused). What is mine there is the running, measuring and fixing, and the write-up of it.
+
 ## 3. My completion checklist
 
 Each line says what exists. When I first compared the project with this list I found five gaps, and I closed all of them afterwards, so I keep the history here instead of hiding it.
