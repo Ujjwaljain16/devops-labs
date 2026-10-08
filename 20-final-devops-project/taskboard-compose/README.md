@@ -448,6 +448,34 @@ Not live: the greeting ("Good morning, Nensi") and the "Recent activity" feed ar
 
 ---
 
+## Screenshots
+
+These were taken in my own terminal and browser, running the commands from this folder. One thing looks different from the text transcripts above: the containers are named **`taskboard-compose-*`** here, but **`session21-python-*`** in the transcripts. Docker Compose names a project after the directory it runs in, and I ran the earlier tests from a scratch copy of the template; from this folder the name is `taskboard-compose`. Nothing else differs.
+
+**1. `docker compose up -d --build`** (started from nothing, after `down -v`): the build finishes in 18.2s with `npm install` (13.5s) and `pip install` (12.9s) doing real work, then the network and the volume are created, **`postgres` goes `Healthy` first**, and only then do `backend` and `frontend` start. That ordering is the healthcheck override from section 3.4 working.
+
+![docker compose up -d --build](screenshots/01_compose_up_build.png)
+
+**2. `docker compose ps`**: all three services up, Postgres `(healthy)`, published on 8000, 3000 and 5433 (5433 because my machine's own PostgreSQL holds 5432).
+
+![docker compose ps](screenshots/02_compose_ps.png)
+
+**3. Swagger UI at `http://localhost:8000/docs`**: the ten routes the API exposes (`/metrics`, `/`, `/health`, `/ready`, and the five task routes plus `/api/tasks/stats`).
+
+![Swagger UI](screenshots/03_swagger_docs.png)
+
+**4. The API tests in the terminal**: health and ready, two creates (ids 1 and 2), the status update of task 1 to `DONE`, the list, the stats (`total 2, todo 0, inProgress 1, done 1`), and the two error cases (`422` for an invalid priority, `404` for an unknown id).
+
+![API CRUD tests](screenshots/04_api_crud_tests.png)
+
+**5. The frontend at `http://localhost:3000`**: the dashboard shows the same data the API tests just created, with the stat cards (Total 2, To do 0, In progress 1, Completed 1) matching `/api/tasks/stats` and both tasks in the table. The greeting ("Good morning, Nensi"), the sidebar profile and the "Recent activity" feed are static placeholder text in the instructor's template, as noted in section 4.3; only the cards and the table are live.
+
+![TaskBoard frontend](screenshots/05_frontend_ui.png)
+
+I did not capture screenshots of two of the findings below: the cold-start crash (finding 1) and the UI console error (finding 5). Their evidence is the log and console text quoted in sections 3.3 and 4.3, taken from the real runs.
+
+---
+
 ## Findings at a glance
 
 | # | Finding | Evidence |
