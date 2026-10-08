@@ -4,7 +4,7 @@
 **Roll Number:** 24bcs10173
 **Section:** Section B
 
-See [ques.md](ques.md) for the exact task breakdown. Task 1 (Volumes) is written up separately in [01-kubernetes-volumes/README.md](01-kubernetes-volumes/README.md), since the doc explicitly asked for a dedicated sub-README there, while Task 2 (HPA) is below. Task 3 (Mini Project) is blocked; see the note at the bottom.
+See [ques.md](ques.md) for the exact task breakdown. Task 1 (Volumes) is written up separately in [01-kubernetes-volumes/README.md](01-kubernetes-volumes/README.md), since the doc explicitly asked for a dedicated sub-README there. Task 2 (HPA) is below. Task 3 (the Mini Project) is in [03-mini-project/README.md](03-mini-project/README.md) and the dedicated Probes work is in [04-probes/README.md](04-probes/README.md); both are summarised at the bottom of this file.Task 3 (Mini Project) is blocked; see the note at the bottom.
 
 ---
 
@@ -254,6 +254,21 @@ The HPA will now scale back down toward `minReplicas: 1` on its own once CPU sta
 
 ---
 
-## Task 3: Mini Project (blocked)
+## Task 3: Mini Project
 
-The doc's Session 13 tab says only: *"Complete the mini project provided for Session 13."* There is no attached brief, link, or further detail on that tab. I am not fabricating a project to fill this gap. Once the actual mini-project handout is available (PDF, separate doc, or whatever the instructor shared live), I will build it out for real.
+The doc's Session 13 tab says only *"Complete the mini project provided for Session 13"* and attaches nothing, so I first marked this as blocked rather than invent a project. The brief was in the instructor's reference repository all along (`session-13-storage-hpa-probes/mini-project/`), and I should have looked there first.
+
+It is one nginx Deployment that combines this session's three topics: a PVC mounted at `/data`, an HPA between 2 and 5 replicas at 50% CPU, and startup, readiness and liveness probes, in its own `production-webapp` namespace. I ran the instructor's five manifests unchanged and verified each claim of the brief. The full write-up, with real outputs, is in [03-mini-project/README.md](03-mini-project/README.md). The results in short:
+
+- **Storage:** the PVC bound in 3 seconds through dynamic provisioning. A file written through one Pod was readable from a replacement, and, as a stronger test, from two brand-new Pods after I scaled to **zero**, with the claim `Bound` the whole time.
+- **HPA, up:** it was blind (`<unknown>`) for the first minutes of a fresh cluster while metrics-server warmed up. With six load generators it scaled `2 -> 3 -> 4` in the first run and `2 -> 4` in one step in the second run, and **stopped at 4, not 5**: each Pod sat at about 53% of its request, inside the HPA's 10 percent tolerance, so 4 is the stable answer. (The brief's example log ends at 5, but that is an illustration.)
+- **HPA, down:** after I removed the load at 12:59:27 UTC the metric fell to `1%` within three minutes, but the replicas stayed at 4 until about 13:06:13, the default 5-minute stabilization window, and then dropped to 2.
+- **Bonus challenge 2:** a wrong readiness path on the real Deployment left both Pods `Running` but `0/1`, the Service with no endpoints and a real request failing with `Connection refused`, and because the manifest uses `strategy: Recreate` the old healthy Pods were already gone.
+
+## Task 4: Probes (a dedicated section)
+
+The session is called "Storage, HPA & **Probes**", but the doc's task list never breaks Probes out, and I had marked the topic as unresolved. The instructor's repository has a dedicated `05-probes/` folder with three manifests and a guide, so I ran all of it, including both "try breaking it" exercises. The write-up is in [04-probes/README.md](04-probes/README.md). In short:
+
+- **Readiness:** a wrong path leaves the Pod `Running` but `0/1`, the Service endpoints empty, and `restartCount=0`. A readiness failure takes a Pod out of traffic without restarting it.
+- **Liveness:** a wrong path makes the kubelet kill and restart the container (restarts climbing, then `CrashLoopBackOff`). The container's last state is `Completed` with exit code 0, a graceful SIGTERM, unlike the exit code 137 of an out-of-memory kill.
+- **A finding the guide does not mention:** the guide says to edit the path and `kubectl apply` again, but the API server **rejects that for a running Pod** (probe fields are immutable on a bare Pod). The Pod has to be deleted and recreated.

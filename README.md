@@ -73,8 +73,9 @@ This repository contains the complete laboratory implementations, source code, c
 ├── 12-kubernetes-storage-hpa-probes/
 │   ├── 01-kubernetes-volumes/           # emptyDir, hostPath, static PV/PVC, dynamic provisioning via StorageClass: all deployed & verified
 │   ├── 02-hpa/                          # deployment.yaml, hpa.yml, load-generator.yaml: real scale-up 1->2->4->5 replicas captured
-│   ├── ques.md                          # Assignment breakdown
-│   ├── gaps.md                          # Open items needing info from Ujjwal: Task 3 Mini Project brief, Probes scope
+│   ├── 03-mini-project/                 # instructor's PVC + HPA + probes mini project: persistence proved at zero Pods, HPA scale-up and 5-minute scale-down captured
+│   ├── 04-probes/                       # liveness / readiness / startup, incl. both "try breaking it" exercises and the Pod-immutability finding
+│   ├── ques.md                          # Assignment breakdown, incl. where the Mini Project and Probes briefs were found
 │   └── README.md                        # HPA walkthrough: metrics-server setup, live polling log, kubectl describe hpa event history
 ├── 13-kubernetes-troubleshooting/
 │   ├── manifests/                       # 7 broken/fixed manifest pairs: all 9 doc-listed failure states genuinely reproduced & fixed
@@ -111,6 +112,7 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── ques.md                          # Assignment breakdown, why a separate cluster, why this repo is the GitOps source
 │   └── README.md                        # Real alert firing lifecycle, real GitOps sync/scale/self-heal, honest tracing gap
 ├── 20-final-devops-project/
+│   ├── taskboard-compose/               # separate homework: the instructor's TaskBoard app run by hand, built, Composed and tested (app code is the instructor's, unchanged), with 6 findings
 │   ├── ques.md                          # Assignment breakdown, how the homework doc and the grading file were reconciled, honest checklist with open items
 │   └── README.md                        # Pointer to the standalone CampusSlot repository, map from the doc's folders to that repository
 ├── extra-kubernetes-workloads-rollback-and-dns/  # Bonus, not part of the doc's 20-module list
@@ -126,10 +128,8 @@ This repository contains the complete laboratory implementations, source code, c
 │   ├── 04-recreate/                    # deployment-v1/v2.yaml, strategy.type Recreate: live-captured downtime window
 │   ├── ques.md                         # Assignment breakdown: gap-filled from repo audit against Lecture 10 Tasks 11-13
 │   └── README.md                       # Blue-Green cutover, canary traffic-split (incl. port-forward gotcha), recreate outage capture
-├── README.md                            # Master submission guide
-└── GAPS.md                              # What's left: module 20's open items against the doc, module 12's 2 open items, the AWS key rotation
+└── README.md                            # Master submission guide
 ```
 
-**Current status:** 20/20 modules built. Module 20 is a standalone repository, [Ujjwaljain16/campusslot](https://github.com/Ujjwaljain16/campusslot), with the pointer and the item-by-item checklist in this repository. See [GAPS.md](GAPS.md) for exactly what's outstanding and why.
-
+**Current status:** 20/20 modules built. Module 20 is a standalone repository, [Ujjwaljain16/campusslot](https://github.com/Ujjwaljain16/campusslot), with the pointer and the item-by-item checklist in this repository.
 ---
