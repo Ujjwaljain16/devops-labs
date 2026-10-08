@@ -295,4 +295,7 @@ Argo CD, installed fresh with the same `--server-side --force-conflicts` fix as 
 Final composite state after both real lifecycles, independent of the original run:
 ![Final composite state, second pass](screenshots/03_final_composite_state.png)
 
+<img width="1024" height="567" alt="image" src="https://github.com/user-attachments/assets/ffa0bd87-844a-4ebd-91b9-5a51439f9212" />
+
+
 The entire `session19` profile was deleted again immediately after capturing this, consistent with the free-tier-style discipline used for the AWS modules: nothing stays running just to look impressive later.
